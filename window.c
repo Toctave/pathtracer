@@ -52,7 +52,7 @@ void render_buffer(SDL_Window* window, ImageBuffer* buffer) {
 				 buffer->width,
 				 buffer->height,
 				 32,
-				 buffer->width * 3,
+				 buffer->width * 4,
 				 rmask,
 				 gmask,
 				 bmask,

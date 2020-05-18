@@ -11,3 +11,12 @@ ImageBuffer* create_buffer(int width, int height) {
     return rval;
 }
 
+void clear_buffer(ImageBuffer* buffer) {
+    for (int i = 0; i < buffer-> width * buffer->height; i++) {
+	buffer->data[i].r = 0.0f;
+	buffer->data[i].g = 0.0f;
+	buffer->data[i].b = 0.0f;
+	buffer->data[i].a = 1.0f;
+    }
+}
+

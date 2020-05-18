@@ -15,4 +15,5 @@ typedef struct ImageBuffer {
 
 
 ImageBuffer* create_buffer(int width, int height);
+void clear_buffer(ImageBuffer* buffer);
 void mix(struct Color a, struct Color b);
