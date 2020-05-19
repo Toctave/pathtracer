@@ -23,40 +23,49 @@ SDL_Window* create_window(char* title, int width, int height) {
     return window;
 }
 
+void clamp(Color* color) {
+    if (color->r < 0.0f) color->r = 0.0f;
+    if (color->r > 1.0f) color->r = 1.0f;
+    if (color->g < 0.0f) color->g = 0.0f;
+    if (color->g > 1.0f) color->g = 1.0f;
+    if (color->b < 0.0f) color->b = 0.0f;
+    if (color->b > 1.0f) color->b = 1.0f;
+}
+
+
 void render_buffer(SDL_Window* window, ImageBuffer* buffer) {
     unsigned char* pixels = malloc(buffer->width *
 				   buffer->height *
-				   4);
+				   3);
     for (int i = 0; i < buffer->width * buffer->height; i++) {
-	pixels[4 * i]     = (unsigned char) (buffer->data[i].r * 255.0f);
-    	pixels[4 * i + 1] = (unsigned char) (buffer->data[i].g * 255.0f);
-	pixels[4 * i + 2] = (unsigned char) (buffer->data[i].b * 255.0f);
-	pixels[4 * i + 3] = (unsigned char) (buffer->data[i].a * 255.0f);
+	Color c = buffer->data[i];
+	clamp(&c);
+    	pixels[3 * i] = (unsigned char) (sqrtf(c.g) * 255.0f);
+    	pixels[3 * i + 1] = (unsigned char) (sqrtf(c.g) * 255.0f);
+	pixels[3 * i + 2] = (unsigned char) (sqrtf(c.b) * 255.0f);
     }
 
     Uint32 rmask, gmask, bmask, amask;
 #if SDL_BYTEORDER == SDL_BIG_ENDIAN
-    rmask = 0xff000000;
-    gmask = 0x00ff0000;
-    bmask = 0x0000ff00;
-    amask = 0x000000ff;
+    rmask = 0xff0000;
+    gmask = 0x00ff00;
+    bmask = 0x0000ff;
 #else
-    rmask = 0x000000ff;
-    gmask = 0x0000ff00;
-    bmask = 0x00ff0000;
-    amask = 0xff000000;
+    rmask = 0x0000ff;
+    gmask = 0x00ff00;
+    bmask = 0xff0000;
 #endif
 
     SDL_Surface* surface =
 	SDL_CreateRGBSurfaceFrom(pixels,
 				 buffer->width,
 				 buffer->height,
-				 32,
-				 buffer->width * 4,
+				 24,
+				 buffer->width * 3,
 				 rmask,
 				 gmask,
 				 bmask,
-				 amask);
+				 0);
 
     int err = SDL_BlitSurface(surface, NULL,
 		    SDL_GetWindowSurface(window), NULL);

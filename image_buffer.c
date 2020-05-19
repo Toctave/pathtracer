@@ -20,3 +20,17 @@ void clear_buffer(ImageBuffer* buffer) {
     }
 }
 
+Color gray(float d) {
+    Color rval = {d, d, d};
+    return rval;
+}
+
+Color cadd(Color a, Color b) {
+    Color rval = {
+	a.r + b.r,
+	a.g + b.g,
+	a.b + b.b
+    };
+    return rval;
+}
+    
