@@ -40,7 +40,7 @@ void render_buffer(SDL_Window* window, ImageBuffer* buffer) {
     for (int i = 0; i < buffer->width * buffer->height; i++) {
 	Color c = buffer->data[i];
 	clamp(&c);
-    	pixels[3 * i] = (unsigned char) (sqrtf(c.g) * 255.0f);
+    	pixels[3 * i] = (unsigned char) (sqrtf(c.r) * 255.0f);
     	pixels[3 * i + 1] = (unsigned char) (sqrtf(c.g) * 255.0f);
 	pixels[3 * i + 2] = (unsigned char) (sqrtf(c.b) * 255.0f);
     }

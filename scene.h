@@ -2,17 +2,25 @@
 
 #include "geometry.h"
 #include "camera.h"
+#include "bsdf.h"
 #include <stddef.h> // size_t
 
 struct Light;
+typedef enum { GEO_PLANE, GEO_SPHERE } GeometryKind;
+
+typedef struct Object {
+    GeometryKind kind;
+    union {
+	Sphere sphere;
+	Plane plane;
+    } geometry;
+    Material* material;
+} Object;
 
 typedef struct Scene {
-    struct {
-	size_t sphere_count;
-	Sphere* spheres;
-	size_t plane_count;
-	Plane* planes;
-    } objects;
+    size_t object_count;
+    Object* objects;
+    
     size_t light_count;
     struct Light* lights;
 } Scene;

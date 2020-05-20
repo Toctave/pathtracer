@@ -2,8 +2,8 @@
 #include "geometry.h"
 
 typedef struct OrthographicCamera {
-    Vec3 position;
-    Vec3 direction;
+    Vec3 eye;
+    Vec3 basis[3];
     float xscale;
     float yscale;
 } OrthographicCamera;

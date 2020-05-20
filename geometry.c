@@ -63,6 +63,22 @@ Vec3 vdiv(Vec3 v, float t) {
     return rval;
 }
 
+Vec3 cross(Vec3 a, Vec3 b) {
+    return (Vec3) {
+	a.y * b.z - a.z * b.y,
+	a.z * b.x - a.x * b.z,
+	a.x * b.y - a.y * b.x,
+    };
+}
+
+Vec3 in_basis(Vec3 v, Vec3 x, Vec3 y, Vec3 z) {
+    return (Vec3) {
+	dot(v, x),
+	dot(v, y),
+	dot(v, z)
+    };
+}
+
 Vec3 along_ray(Ray r, float t) {
     return vadd(r.o, vmul(r.d, t));
 }
@@ -79,7 +95,7 @@ Color vec3_to_color(Vec3 v) {
     return rval;
 }
 
-void intersect_sphere(Sphere s, Ray r, Intersect* intersect) {
+bool intersect_sphere(Sphere s, Ray r, Intersect* intersect) {
     Vec3 center_orig = vsub(r.o, s.center);
     float a = norm2(r.d);
     float b = 2.0f * dot(center_orig, r.d);
@@ -87,7 +103,7 @@ void intersect_sphere(Sphere s, Ray r, Intersect* intersect) {
 
     float delta = b * b - 4 * a * c;
 
-    intersect->incoming = r;
+    intersect->outgoing = vneg(r.d);
 
     if (delta > 0) {
 	float sqd = sqrtf(delta);
@@ -99,6 +115,7 @@ void intersect_sphere(Sphere s, Ray r, Intersect* intersect) {
 	    intersect->normal = vdiv(
 		vsub(intersect->point, s.center),
 		s.radius);
+	    return true;
 	} else if ((t += sqd / a) > EPSILON && t < intersect->t) {
 	    intersect->hit = true;
 	    intersect->t = t;
@@ -106,31 +123,34 @@ void intersect_sphere(Sphere s, Ray r, Intersect* intersect) {
 	    intersect->normal = vdiv(
 		vsub(s.center, intersect->point),
 		s.radius);
+	    return true;
 	}
     }
+    return false;
 }
  
-void intersect_plane(Plane p, Ray r, Intersect* intersect) {
+bool intersect_plane(Plane p, Ray r, Intersect* intersect) {
     // (o + t * d) . n = D
     float d = dot(p.normal, r.d);
-    intersect->incoming = r;
+    intersect->outgoing = vneg(r.d);
     if (d < -EPSILON || d > EPSILON) {
 	float t = (p.distance - dot(r.o, p.normal)) / d;
 	if (t > EPSILON && t < intersect->t) {
 	    intersect->hit = true;
-	    intersect->t = true;
+	    intersect->t = t;
 	    intersect->point = along_ray(r, t);
 	    intersect->normal = d > 0 ? vneg(p.normal) : p.normal;
-	    return;
+	    return true;
 	}
     }
+    return false;
 }
 
 bool intersects_plane(Plane p, Ray r) {
     float d = dot(p.normal, r.d);
     if (d < -EPSILON || d > EPSILON) {
 	float t = (p.distance - dot(r.o, p.normal)) / d;
-	if (t > 0) {
+	if (t > EPSILON) {
 	    return true;
 	}
     }

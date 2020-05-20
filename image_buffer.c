@@ -18,6 +18,7 @@ void clear_buffer(ImageBuffer* buffer) {
 	buffer->data[i].b = 0.0f;
 	buffer->data[i].a = 1.0f;
     }
+    
 }
 
 Color gray(float d) {
@@ -33,4 +34,15 @@ Color cadd(Color a, Color b) {
     };
     return rval;
 }
-    
+
+Color cmul(Color a, Color b) {
+    return (Color) {
+	a.r * b.r,
+	a.g * b.g,
+	a.b * b.b
+    };
+}
+
+Color cscale(Color a, float f) {
+    return (Color) {a.r * f, a.g * f, a.b * f};
+}

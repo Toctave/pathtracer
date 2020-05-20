@@ -18,5 +18,7 @@ ImageBuffer* create_buffer(int width, int height);
 void clear_buffer(ImageBuffer* buffer);
 Color mix(Color a, Color b, float t);
 Color cadd(Color a, Color b);
+Color cscale(Color a, float f);
+Color cmul(Color a, Color b);
 Color gray(float d);
 

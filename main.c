@@ -22,36 +22,55 @@ void render_stuff(ImageBuffer* buffer) {
     static int x = 0;
     static int y = 0;
 
+    Object objects[2];
+
     Sphere s = {
-	.center = {.0f},
+	.center = {.0f, .0f, .5f},
 	.radius = .5f,
     };
-
     Plane p = {
-	.normal = normalized((Vec3){.0f, .5f, .5f}),
-	.distance = -1.0f,
+	.normal = normalized((Vec3){.0f, .0f, 1.0f}),
+	.distance = .0f,
+    };
+
+    BSDF lambert = {
+	.f = lambert_bsdf,
+	.sampler = uniform_bsdf_sampler,
+    };
+    Color white = {1.0f, 1.0f, 1.0f};
+    Material white_mat = {
+	.bsdf = &lambert,
+	.params = &white
+    };
+
+    objects[0] = (Object) {
+	.kind = GEO_SPHERE,
+	.geometry = { .sphere = s },
+	.material = &white_mat,
+    };
+
+    objects[1] = (Object) {
+	.kind = GEO_PLANE,
+	.geometry = { .plane = p },
+	.material = &white_mat,
     };
     
     Light l = {
-	.position = {1.0f, 1.0f, .7f},
-	.color = {1.0f, 1.0f, 1.0f},
-	.intensity = 1.0f,
+	.position = {.0f, 1.0f, 2.0f},
+	.color = {.3f, 1.0f, .5f},
+	.intensity = 3.0f,
     };
     
     float ratio = (float) WIDTH / HEIGHT;
     OrthographicCamera cam = create_ortho_camera(
-	(Vec3) {0.0f, 0.0f, 1.0f},
+	(Vec3) {-1.0f, 0.0f, 2.0f},
 	(Vec3) {0.0f, 0.0f, 0.0f},
 	ratio,
-	1.0f);
+	2.0f);
     
     Scene sc = {
-	.objects = {
-	    .plane_count = 1,
-	    .planes = &p,
-	    .sphere_count = 1,
-	    .spheres = &s,
-	},
+	.object_count = 2,
+	.objects = objects,
 	.light_count = 1,
 	.lights = &l,
     };

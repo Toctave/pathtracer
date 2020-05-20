@@ -4,6 +4,8 @@
 
 #define EPSILON 1e-6
 
+typedef struct Material Material;
+
 typedef struct Vec3 {
     float x;
     float y;
@@ -29,8 +31,9 @@ typedef struct Intersect {
     bool hit;
     Vec3 point;
     Vec3 normal;
-    Ray incoming;
+    Vec3 outgoing; // the light's direction, not the algorithm's
     float t;
+    Material* material;
 } Intersect;
 
 float norm2(Vec3 v);
@@ -45,11 +48,14 @@ Vec3 vmul(Vec3 a, float t);
 Vec3 along_ray(Ray r, float t);
 Vec3 vdiv(Vec3 a, float t);
 float dot(Vec3 a, Vec3 b);
+Vec3 cross(Vec3 a, Vec3 b);
+
+Vec3 in_basis(Vec3 v, Vec3 x, Vec3 y, Vec3 z);
 
 Color vec3_to_color(Vec3 v);
 
-void intersect_sphere(Sphere s, Ray r, Intersect* intersect);
+bool intersect_sphere(Sphere s, Ray r, Intersect* intersect);
 bool intersects_sphere(Sphere s, Ray r);
 
-void intersect_plane(Plane p, Ray r, Intersect* intersect);
+bool intersect_plane(Plane p, Ray r, Intersect* intersect);
 bool intersects_plane(Plane p, Ray r);
