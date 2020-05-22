@@ -71,12 +71,21 @@ Vec3 cross(Vec3 a, Vec3 b) {
     };
 }
 
-Vec3 in_basis(Vec3 v, Vec3 x, Vec3 y, Vec3 z) {
+Vec3 world2basis(Vec3 v, Vec3 x, Vec3 y, Vec3 z) {
     return (Vec3) {
 	dot(v, x),
 	dot(v, y),
 	dot(v, z)
     };
+}
+
+Vec3 basis2world(Vec3 v, Vec3 x, Vec3 y, Vec3 z) {
+    return vadd(
+	vadd(
+	    vmul(x, v.x),
+	    vmul(y, v.y)),
+	vmul(z, v.z)
+	);
 }
 
 Vec3 along_ray(Ray r, float t) {

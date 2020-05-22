@@ -34,15 +34,24 @@ void clamp(Color* color) {
 
 
 void render_buffer(SDL_Window* window, ImageBuffer* buffer) {
+    const int channels = 3;
     unsigned char* pixels = malloc(buffer->width *
 				   buffer->height *
-				   3);
+				   channels);
+    float invGamma = 1.0f / buffer->gamma;
     for (int i = 0; i < buffer->width * buffer->height; i++) {
-	Color c = buffer->data[i];
+	if (!buffer->data[i].samples) {
+	    continue;
+	}
+	Color c = cscale(buffer->data[i].color,
+		       1.0f / buffer->data[i].samples);
 	clamp(&c);
-    	pixels[3 * i] = (unsigned char) (sqrtf(c.r) * 255.0f);
-    	pixels[3 * i + 1] = (unsigned char) (sqrtf(c.g) * 255.0f);
-	pixels[3 * i + 2] = (unsigned char) (sqrtf(c.b) * 255.0f);
+    	pixels[channels * i] =
+	    (unsigned char) (powf(c.r, invGamma) * 255.0f);
+    	pixels[channels * i + 1] = 
+	    (unsigned char) (powf(c.g, invGamma) * 255.0f);
+	pixels[channels * i + 2] =
+	    (unsigned char) (powf(c.b, invGamma) * 255.0f);
     }
 
     Uint32 rmask, gmask, bmask, amask;
@@ -60,8 +69,8 @@ void render_buffer(SDL_Window* window, ImageBuffer* buffer) {
 	SDL_CreateRGBSurfaceFrom(pixels,
 				 buffer->width,
 				 buffer->height,
-				 24,
-				 buffer->width * 3,
+				 channels * sizeof(unsigned char) * 8,
+				 buffer->width * channels,
 				 rmask,
 				 gmask,
 				 bmask,

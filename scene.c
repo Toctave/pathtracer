@@ -21,21 +21,24 @@ bool intersect_object(Object obj, Ray r, Intersect* it) {
     return did_intersect;
 }
 
-Color trace_ray(Scene* sc, Ray r) {
+Intersect trace_ray(Scene* sc, Ray r, int depth) {
     Intersect it;
     it.hit = false;
     it.t = INFINITY;
+    it.depth = depth;
 
     for (int i = 0; i < sc->object_count; i++) {
 	intersect_object(sc->objects[i], r, &it);
     }
 
     if (it.hit) {
-	return shade(it, sc);
+	it.outgoing_radiance = shade(it, sc);
     } else {
-	return gray(0.0f); // @Todo : color constants
+	it.outgoing_radiance = gray(0.0f); // @Todo : color constants
     }
+    return it;
 }
+
 
 bool free_segment(Scene* sc, Vec3 a, Vec3 b) {
     Intersect it;
@@ -51,15 +54,18 @@ bool free_segment(Scene* sc, Vec3 a, Vec3 b) {
     return it.t * it.t > norm2(r.d);
 }
 
-void render_scene(Scene* sc, OrthographicCamera camera, ImageBuffer* buffer) {
+void sample_scene(Scene* sc, OrthographicCamera camera, ImageBuffer* buffer) {
     for (int y = 0; y < buffer->height; y++) {
 	for (int x = 0; x < buffer->width; x++) {
-	    float sx = (x + .5f) / buffer->width;
-	    float sy = 1.0f - (y + .5f) / buffer->height;
+	    float dx, dy;
+	    sample_unit_square(&dx, &dy, NULL);
+	    float sx = (x + dx) / buffer->width;
+	    float sy = 1.0f - (y + dy) / buffer->height;
 	    
 	    Ray r = ortho_camera_ray(camera, sx, sy);
 
-	    buffer->data[y * buffer->width + x] = trace_ray(sc, r);
+	    add_pixel_sample(buffer, x, y,
+			     trace_ray(sc, r, 0).outgoing_radiance);
 	}
     }
 

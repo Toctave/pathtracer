@@ -28,11 +28,13 @@ typedef struct Plane {
 } Plane;
 
 typedef struct Intersect {
+    int depth;
     bool hit;
     Vec3 point;
     Vec3 normal;
-    Vec3 outgoing; // the light's direction, not the algorithm's
     float t;
+    Vec3 outgoing; // the light's direction, not the algorithm's
+    Color outgoing_radiance;
     Material* material;
 } Intersect;
 
@@ -50,7 +52,8 @@ Vec3 vdiv(Vec3 a, float t);
 float dot(Vec3 a, Vec3 b);
 Vec3 cross(Vec3 a, Vec3 b);
 
-Vec3 in_basis(Vec3 v, Vec3 x, Vec3 y, Vec3 z);
+Vec3 world2basis(Vec3 v, Vec3 x, Vec3 y, Vec3 z);
+Vec3 basis2world(Vec3 v, Vec3 x, Vec3 y, Vec3 z);
 
 Color vec3_to_color(Vec3 v);
 

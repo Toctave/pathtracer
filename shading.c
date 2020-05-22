@@ -1,49 +1,70 @@
 #include "shading.h"
 #include "bsdf.h"
+#include "scene.h"
 #include <math.h>
 #include <stdio.h>
 
-#define GAMMA 2.0f
+#define MAX_DEPTH 3
 
 Color shade(Intersect it, Scene* sc) {
-    BSDF lambert = {
-	.f = lambert_bsdf,
-	.sampler = uniform_bsdf_sampler,
-    };
-    Color white = gray(1.0f);
-    Color rval = {.0f, .0f, .0f};
-
     // @Todo : think about the right shifting amount
     Vec3 surface_point = vadd(it.point,
 			      vmul(it.normal, 2 * EPSILON));
     Vec3 u = normalized(cross(it.outgoing, it.normal));
     Vec3 v = cross(it.normal, u);
 
-    // DIRECT LIGHTING
-    for (int i = 0; i < sc->light_count; i++) {
-	Light l = sc->lights[i];
-	if (free_segment(sc, surface_point, l.position)) {
-	    Vec3 tolight = normalized(
-		vsub(l.position, it.point)
-		);
+    // EMITTED LIGHT
+    Vec3 local_out = world2basis(it.outgoing, u, v, it.normal);
+    Color rval = {0.0f};
+    if (it.material->bsdf->emitted) {
+	rval = it.material->bsdf->emitted(it.material->params, local_out);
+    }
 
-	    Vec3 in = in_basis(tolight, u, v, it.normal);
-	    Vec3 out = in_basis(it.outgoing, u, v, it.normal);
+    if (it.material->bsdf->f) {
+	// DIRECT LIGHTING
+	for (int i = 0; i < sc->light_count && false; i++) {
+	    Light l = sc->lights[i];
+	    if (free_segment(sc, surface_point, l.position)) {
+		Vec3 tolight = normalized(
+		    vsub(l.position, it.point)
+		    );
 
-	    float light_attenuation = 1.0f / dot(tolight, tolight);
+		Vec3 in = world2basis(tolight, u, v, it.normal);
 
-	    Color f =
-		it.material->bsdf->f(it.material->params, in, out);
+		float light_attenuation = 1.0f / dot(tolight, tolight);
+
+		// @Speed : too many dereferences
+		Color f =
+		    it.material->bsdf->f(it.material->params, in, local_out);
+		rval = cadd(rval,
+			    cscale(cmul(f, l.color),
+				   light_attenuation * l.intensity
+				)
+		    );
+	    }
+	}
+	// INDIRECT LIGHTING
+	if (it.depth < MAX_DEPTH) {
+	    float pdf;
+	    Vec3 bounce_sample = it.material->bsdf->sampler(local_out, &pdf);
+	    Ray bounce = {
+		.o = surface_point,
+		.d = basis2world(bounce_sample, u, v, it.normal)
+	    };
+	    if (fabs(norm2(bounce.d) - 1.0f) > 1e-3)
+		vprint(bounce.d);
+
+	    Intersect bounce_it = trace_ray(sc, bounce, it.depth + 1);
+	    Color f = it.material->bsdf->f(it.material->params,
+					   bounce_sample, local_out);
+	    Color dc = cmul(
+		bounce_it.outgoing_radiance,
+		f);
 	    rval = cadd(rval,
-			cscale(cmul(f, l.color),
-			       light_attenuation * l.intensity
-			    )
-		);
+			cscale(dc, 1.0f / pdf));
 	}
     }
 
-    // INDIRECT LIGHTING
-    // @Todo !
     return rval;
 }
 

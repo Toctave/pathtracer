@@ -1,25 +1,35 @@
 #include "image_buffer.h"
 #include <stdlib.h>
+#include <math.h>
 
-ImageBuffer* create_buffer(int width, int height) {
+ImageBuffer* create_buffer(int width, int height, float gamma) {
     ImageBuffer* rval =
 	malloc(sizeof(ImageBuffer) +
-	       width * height * sizeof(struct Color));
-    rval->data = (struct Color*) (rval + 1);
+	       width * height * sizeof(PixelData));
+    rval->data = (PixelData*) (rval + 1);
     rval->width = width;
     rval->height = height;
+    rval->gamma = gamma;
     return rval;
 }
 
 void clear_buffer(ImageBuffer* buffer) {
     for (int i = 0; i < buffer-> width * buffer->height; i++) {
-	buffer->data[i].r = 0.0f;
-	buffer->data[i].g = 0.0f;
-	buffer->data[i].b = 0.0f;
-	buffer->data[i].a = 1.0f;
+	buffer->data[i].color.r = 0.0f;
+	buffer->data[i].color.g = 0.0f;
+	buffer->data[i].color.b = 0.0f;
+	buffer->data[i].samples = 0;
     }
-    
 }
+
+void add_pixel_sample(ImageBuffer* buffer, int x, int y, Color c) {
+    int i = y * buffer->width + x;
+    buffer->data[i].samples++;
+    buffer->data[i].color.r += powf(c.r, buffer->gamma);
+    buffer->data[i].color.g += powf(c.g, buffer->gamma);
+    buffer->data[i].color.b += powf(c.b, buffer->gamma);
+}
+
 
 Color gray(float d) {
     Color rval = {d, d, d};

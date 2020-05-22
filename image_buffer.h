@@ -4,18 +4,25 @@ typedef struct Color {
     float r;
     float g;
     float b;
-    float a;
 } Color;
+
+typedef struct PixelData {
+    Color color;
+    int samples;
+} PixelData;
 
 typedef struct ImageBuffer {
     int width;
     int height;
-    Color* data;
+    PixelData* data;
+    float gamma;
 } ImageBuffer;
 
 
-ImageBuffer* create_buffer(int width, int height);
+ImageBuffer* create_buffer(int width, int height, float gamma);
 void clear_buffer(ImageBuffer* buffer);
+void add_pixel_sample(ImageBuffer* buffer, int x, int y, Color c);
+
 Color mix(Color a, Color b, float t);
 Color cadd(Color a, Color b);
 Color cscale(Color a, float f);
