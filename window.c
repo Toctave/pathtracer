@@ -52,6 +52,10 @@ void render_buffer(SDL_Window* window, ImageBuffer* buffer) {
 	    (unsigned char) (powf(c.g, invGamma) * 255.0f);
 	pixels[channels * i + 2] =
 	    (unsigned char) (powf(c.b, invGamma) * 255.0f);
+
+	float u = pixels[channels * i] +
+	    pixels[channels * i + 1] +
+	    pixels[channels * i + 2];
     }
 
     Uint32 rmask, gmask, bmask, amask;

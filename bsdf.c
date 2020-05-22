@@ -2,21 +2,25 @@
 #include <math.h>
 #include <stddef.h>
 
-Vec3 uniform_bsdf_sampler(Vec3 in, float* pdf) {
-    return sample_unit_hemisphere(pdf);
+Vec3 uniform_bsdf_sampler(Sampler* sampler, Vec3 in, float* pdf) {
+    return sample_unit_hemisphere(sampler, pdf);
 }
 
-Vec3 cosine_bsdf_sampler(Vec3 out, float* pdf) {
+Vec3 cosine_bsdf_sampler(Sampler* sampler, Vec3 out, float* pdf) {
     Vec3 sample;
-    sample_unit_disc(&sample.x, &sample.y, NULL);
+    sample_unit_disc(sampler, &sample.x, &sample.y, NULL);
+    
     sample.z = sqrtf(1.0f -
 		     sample.x * sample.x -
 		     sample.y * sample.y);
+    if (isnan(sample.z)) { // can happen because of rounding errors
+	sample.z = .0f;
+    }
     *pdf = sample.z / M_PI; // p(theta, phi) = cos(theta) / pi
     return sample;
 }
 
-Vec3 perfect_reflection_sampler(Vec3 out, float* pdf) {
+Vec3 perfect_reflection_sampler(Sampler* sampler, Vec3 out, float* pdf) {
     *pdf = -1.0f;
     return (Vec3) {out.x, -out.y, out.z};
 }

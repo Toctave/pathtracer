@@ -21,11 +21,12 @@ bool intersect_object(Object obj, Ray r, Intersect* it) {
     return did_intersect;
 }
 
-Intersect trace_ray(Scene* sc, Ray r, int depth) {
+Intersect trace_ray(Scene* sc, Ray r, int depth, Sampler* sampler) {
     Intersect it;
     it.hit = false;
     it.t = INFINITY;
     it.depth = depth;
+    it.sampler = sampler;
 
     for (int i = 0; i < sc->object_count; i++) {
 	intersect_object(sc->objects[i], r, &it);
@@ -58,14 +59,14 @@ void sample_scene(Scene* sc, Camera camera, ImageBuffer* buffer) {
     for (int y = 0; y < buffer->height; y++) {
 	for (int x = 0; x < buffer->width; x++) {
 	    float dx, dy;
-	    sample_unit_square(&dx, &dy, NULL);
+	    sample_unit_square(sc->sampler, &dx, &dy, NULL);
 	    float sx = (x + dx) / buffer->width;
 	    float sy = 1.0f - (y + dy) / buffer->height;
 	    
 	    Ray r = camera_ray(camera, sx, sy);
 
 	    add_pixel_sample(buffer, x, y,
-			     trace_ray(sc, r, 0).outgoing_radiance);
+			     trace_ray(sc, r, 0, sc->sampler).outgoing_radiance);
 	}
     }
 

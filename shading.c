@@ -46,23 +46,24 @@ Color shade(Intersect it, Scene* sc) {
 	// INDIRECT LIGHTING
 	if (it.depth < MAX_DEPTH) {
 	    float pdf;
-	    Vec3 bounce_sample = it.material->bsdf->sampler(local_out, &pdf);
+	    Vec3 bounce_sample = it.material->bsdf->sampler(it.sampler, local_out, &pdf);
 	    Ray bounce = {
 		.o = surface_point,
 		.d = basis2world(bounce_sample, u, v, it.normal)
 	    };
 
-	    Intersect bounce_it = trace_ray(sc, bounce, it.depth + 1);
+	    Intersect bounce_it = trace_ray(sc, bounce, it.depth + 1, it.sampler);
 	    Color f = it.material->bsdf->f(it.material->params,
 					   bounce_sample, local_out);
 	    Color dc = cmul(
 		bounce_it.outgoing_radiance,
 		f);
-	    float inv_pdf = pdf > 0.0f ? 1.0f / pdf : 1.0f;
+	    float inv_pdf = pdf > EPSILON ? 1.0f / pdf : 1.0f;
 	    rval = cadd(rval,
 			cscale(dc, inv_pdf));
 	}
     }
+
 
     return rval;
 }

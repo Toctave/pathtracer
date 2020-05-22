@@ -5,6 +5,7 @@
 #define EPSILON 1e-6
 
 typedef struct Material Material;
+typedef struct Sampler Sampler;
 
 typedef struct Vec3 {
     float x;
@@ -36,6 +37,7 @@ typedef struct Intersect {
     Vec3 outgoing; // the light's direction, not the algorithm's
     Color outgoing_radiance;
     Material* material;
+    Sampler* sampler;
 } Intersect;
 
 float norm2(Vec3 v);

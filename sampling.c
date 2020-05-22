@@ -2,20 +2,24 @@
 #include <math.h>
 #include <stdlib.h>
 
-float rnd() {
-    return (float) rand() / RAND_MAX;
+unsigned int sample_int(Sampler* sampler) {
+    return rand_r(&sampler->seed);
 }
 
-void sample_unit_square(float* x, float* y, float* pdf) {
-    *x = rnd();
-    *y = rnd();
+float rnd(Sampler* sampler) {
+    return (float) rand_r(&sampler->seed) / RAND_MAX;
+}
+
+void sample_unit_square(Sampler* sampler, float* x, float* y, float* pdf) {
+    *x = rnd(sampler);
+    *y = rnd(sampler);
     if (pdf)
 	*pdf = 1.0f;
 }
 
-void sample_unit_disc(float* x, float* y, float* pdf) {
+void sample_unit_disc(Sampler* sampler, float* x, float* y, float* pdf) {
     float u, v;
-    sample_unit_square(&u, &v, NULL);
+    sample_unit_square(sampler, &u, &v, NULL);
     float theta = 2 * M_PI * u;
     float r = sqrtf(v);
 
@@ -25,9 +29,9 @@ void sample_unit_disc(float* x, float* y, float* pdf) {
 	*pdf = 1.0f / M_PI;
 }
 
-Vec3 sample_unit_hemisphere(float* pdf) {
+Vec3 sample_unit_hemisphere(Sampler* sampler, float* pdf) {
     float cosTheta, v;
-    sample_unit_square(&cosTheta, &v, NULL);
+    sample_unit_square(sampler, &cosTheta, &v, NULL);
     float sinTheta = sqrtf(1 - cosTheta * cosTheta);
     float cosPhi = cosf(2 * M_PI * v);
     float sinPhi = sinf(2 * M_PI * v);

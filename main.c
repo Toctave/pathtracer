@@ -4,10 +4,12 @@
 #include "geometry.h"
 #include "shading.h"
 #include "camera.h"
+#include "multithreading.h"
 #include <stdlib.h>
+#include <sys/sysinfo.h>
 
-#define WIDTH 500
-#define HEIGHT 500
+#define WIDTH 100
+#define HEIGHT 100
 #define GAMMA 2.0f
 
 void handle_events(bool* quit) {
@@ -95,6 +97,9 @@ void render_stuff(ImageBuffer* buffer, SDL_Window* window) {
 		70.0f)
 	}
     };
+
+    Sampler sampler;
+    sampler.seed = 0;
     
     Scene sc = {
 	.object_count = 8,
@@ -187,18 +192,22 @@ void render_stuff(ImageBuffer* buffer, SDL_Window* window) {
 	},
 	.light_count = 1,
 	.lights = &l,
+
+	.sampler = &sampler
     };
     
     clear_buffer(buffer);
     bool quit = false;
     int samples = 0;
     int t0 = SDL_GetTicks();
+    int n_cores = get_nprocs();
     while (!quit) {
 	int t = SDL_GetTicks();
 
 	handle_events(&quit);
 		
-	sample_scene(&sc, cam, buffer);
+	//sample_scene(&sc, cam, buffer);
+	sample_scene_master(&sc, cam, buffer, n_cores); 
 	
 	render_buffer(window, buffer);
 	SDL_UpdateWindowSurface(window);
