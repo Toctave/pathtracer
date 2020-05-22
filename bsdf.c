@@ -16,6 +16,11 @@ Vec3 cosine_bsdf_sampler(Vec3 out, float* pdf) {
     return sample;
 }
 
+Vec3 perfect_reflection_sampler(Vec3 out, float* pdf) {
+    *pdf = -1.0f;
+    return (Vec3) {out.x, -out.y, out.z};
+}
+
 Color lambert_bsdf(void* params, Vec3 in, Vec3 out) {
     Color* col = (Color*) params;
 
@@ -23,6 +28,10 @@ Color lambert_bsdf(void* params, Vec3 in, Vec3 out) {
 	return (Color) {0.0f};
     else
 	return cscale(*col, in.z / M_PI);
+}
+
+Color perfect_reflection_bsdf(void* params, Vec3 in, Vec3 out) {
+    return (Color) {1.0f, 1.0f, 1.0f}; // should not be called unless in and out are opposite each other
 }
 
 Color isotropic_emission(void* params, Vec3 out) {

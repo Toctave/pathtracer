@@ -58,8 +58,9 @@ Color shade(Intersect it, Scene* sc) {
 	    Color dc = cmul(
 		bounce_it.outgoing_radiance,
 		f);
+	    float inv_pdf = pdf > 0.0f ? 1.0f / pdf : 1.0f;
 	    rval = cadd(rval,
-			cscale(dc, 1.0f / pdf));
+			cscale(dc, inv_pdf));
 	}
     }
 

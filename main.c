@@ -29,20 +29,18 @@ void format_time(int seconds, char* buffer) {
 }
 
 void render_stuff(ImageBuffer* buffer, SDL_Window* window) {
-    Object objects[3];
+    Color white = {1.0f, 1.0f, 1.0f};
+    Color cream = {50.0f, 45.0f, 40.0f};
+    Color red = {1.0f, .0f, .0f};
+    Color green = {0.0f, 1.0f, .0f};
+    Color yellow = {1.0f, 1.0f, .0f};
+    Color emissive_blue = {25.0f, 25.0f, 50.0f};
 
     BSDF lambert = {
 	.f = lambert_bsdf,
 	.sampler = cosine_bsdf_sampler,
 	.emitted = NULL
     };
-    Color white = {1.0f, 1.0f, 1.0f};
-    Color cream = {50.0f, 45.0f, 40.0f};
-    Color red = {1.0f, .0f, .0f};
-    Color green = {0.0f, 1.0f, .0f};
-    Color yellow = {1.0f, 1.0f, .0f};
-
-    Color emissive_blue = {25.0f, 25.0f, 50.0f};
     Material white_mat = {
 	.bsdf = &lambert,
 	.params = &white
@@ -69,6 +67,16 @@ void render_stuff(ImageBuffer* buffer, SDL_Window* window) {
 	.bsdf = &emissive,
 	.params = &cream
     };
+
+    BSDF mirror = {
+	.f = perfect_reflection_bsdf,
+	.sampler = perfect_reflection_sampler,
+	.emitted = NULL
+    };
+    Material mirror_mat = {
+	.bsdf = &mirror,
+	.params = NULL
+    };
     
     Light l = {
 	.position = {.0f, 1.0f, 2.0f},
@@ -89,7 +97,7 @@ void render_stuff(ImageBuffer* buffer, SDL_Window* window) {
     };
     
     Scene sc = {
-	.object_count = 7,
+	.object_count = 8,
 	.objects = (Object[]) {
 	    {
 		.kind = GEO_SPHERE,
@@ -120,6 +128,16 @@ void render_stuff(ImageBuffer* buffer, SDL_Window* window) {
 		    }
 		},
 		.material = &yellow_mat
+	    },
+	    {
+		.kind = GEO_SPHERE,
+		.geometry = {
+		    .sphere = {
+			.center = {.5f, 1.0f, 4.0f},
+			.radius = 1.0f,
+		    }
+		},
+		.material = &mirror_mat
 	    },
 	    // WALLS
 	    // right
