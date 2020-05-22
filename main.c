@@ -194,10 +194,15 @@ void render_stuff(ImageBuffer* buffer, SDL_Window* window) {
     int samples = 0;
     int t0 = SDL_GetTicks();
     while (!quit) {
-	handle_events(&quit);
-	
 	int t = SDL_GetTicks();
+
+	handle_events(&quit);
+		
 	sample_scene(&sc, cam, buffer);
+	
+	render_buffer(window, buffer);
+	SDL_UpdateWindowSurface(window);
+	
 	int now = SDL_GetTicks();
 	char total_time[256];
 	format_time((now - t0) / 1000, total_time);
@@ -206,9 +211,6 @@ void render_stuff(ImageBuffer* buffer, SDL_Window* window) {
 	       now - t,
 	       total_time);
 	fflush(stdout);
-	
-	render_buffer(window, buffer);
-	SDL_UpdateWindowSurface(window);
     }
 }
 
