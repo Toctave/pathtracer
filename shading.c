@@ -51,8 +51,6 @@ Color shade(Intersect it, Scene* sc) {
 		.o = surface_point,
 		.d = basis2world(bounce_sample, u, v, it.normal)
 	    };
-	    if (fabs(norm2(bounce.d) - 1.0f) > 1e-3)
-		vprint(bounce.d);
 
 	    Intersect bounce_it = trace_ray(sc, bounce, it.depth + 1);
 	    Color f = it.material->bsdf->f(it.material->params,

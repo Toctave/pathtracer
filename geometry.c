@@ -10,67 +10,6 @@ float norm(Vec3 v) {
     return sqrtf(norm2(v));
 }
 
-Vec3 normalized(Vec3 v) {
-    return vdiv(v, norm(v));
-}
-
-float dot(Vec3 a, Vec3 b) {
-    return a.x * b.x + a.y * b.y + a.z * b.z;
-}
-
-Vec3 vadd(Vec3 a, Vec3 b) {
-    Vec3 rval = {
-	a.x + b.x,
-	a.y + b.y,
-	a.z + b.z
-    };
-    return rval;
-}
-
-Vec3 vneg(Vec3 v) {
-   Vec3 rval = {
-	- v.x,
-	- v.y,
-	- v.z
-    };
-    return rval;
-}
-
-Vec3 vsub(Vec3 a, Vec3 b) {
-    Vec3 rval = {
-	a.x - b.x,
-	a.y - b.y,
-	a.z - b.z
-    };
-    return rval;
-}
-
-Vec3 vmul(Vec3 v, float t) {
-    Vec3 rval = {
-	v.x * t,
-	v.y * t,
-	v.z * t
-    };
-    return rval;
-}
-
-Vec3 vdiv(Vec3 v, float t) {
-    Vec3 rval = {
-	v.x / t,
-	v.y / t,
-	v.z / t
-    };
-    return rval;
-}
-
-Vec3 cross(Vec3 a, Vec3 b) {
-    return (Vec3) {
-	a.y * b.z - a.z * b.y,
-	a.z * b.x - a.x * b.z,
-	a.x * b.y - a.y * b.x,
-    };
-}
-
 Vec3 world2basis(Vec3 v, Vec3 x, Vec3 y, Vec3 z) {
     return (Vec3) {
 	dot(v, x),
@@ -86,10 +25,6 @@ Vec3 basis2world(Vec3 v, Vec3 x, Vec3 y, Vec3 z) {
 	    vmul(y, v.y)),
 	vmul(z, v.z)
 	);
-}
-
-Vec3 along_ray(Ray r, float t) {
-    return vadd(r.o, vmul(r.d, t));
 }
 
 void vprint(Vec3 v) {

@@ -4,10 +4,16 @@ LIBS = sdl2
 BINARY_NAME = raytracer
 SRCS = $(wildcard *.c)
 LDFLAGS = $(shell pkg-config --libs $(LIBS)) -lm
-CFLAGS = $(shell pkg-config --libs $(LIBS)) -g
+CFLAGS = $(shell pkg-config --libs $(LIBS))
+
+DEBUG_FLAGS = -g -pg
+RELEASE_FLAGS = -O3
 
 $(BINARY_NAME) : $(SRCS)
-> @ $(CC) $(CFLAGS) $(SRCS) -o $@ $(LDFLAGS)
+> @ $(CC) $(CFLAGS) $(RELEASE_FLAGS) $(SRCS) -o $@ $(LDFLAGS)
+
+debug : $(SRCS)
+> @ $(CC) $(CFLAGS) $(DEBUG_FLAGS) $(SRCS) -o $(BINARY_NAME) $(LDFLAGS)
 
 run : $(BINARY_NAME)
 > ./$(BINARY_NAME)

@@ -6,8 +6,8 @@
 #include "camera.h"
 #include <stdlib.h>
 
-#define WIDTH 640
-#define HEIGHT 480
+#define WIDTH 500
+#define HEIGHT 500
 #define GAMMA 2.0f
 
 void handle_events(bool* quit) {
@@ -29,31 +29,18 @@ void format_time(int seconds, char* buffer) {
 }
 
 void render_stuff(ImageBuffer* buffer, SDL_Window* window) {
-    static int x = 0;
-    static int y = 0;
-
     Object objects[3];
-
-    Sphere lamp_sphere = {
-	.center = {-2.0f, 4.0f, 2.0f},
-	.radius = 1.0f,
-    };
-    Sphere s = {
-	.center = {.0f, .0f, .5f},
-	.radius = .5f,
-    };
-    Plane p = {
-	.normal = normalized((Vec3){.0f, .0f, 1.0f}),
-	.distance = .0f,
-    };
 
     BSDF lambert = {
 	.f = lambert_bsdf,
-	.sampler = uniform_bsdf_sampler,
+	.sampler = cosine_bsdf_sampler,
 	.emitted = NULL
     };
     Color white = {1.0f, 1.0f, 1.0f};
+    Color cream = {50.0f, 45.0f, 40.0f};
     Color red = {1.0f, .0f, .0f};
+    Color green = {0.0f, 1.0f, .0f};
+    Color yellow = {1.0f, 1.0f, .0f};
 
     Color emissive_blue = {25.0f, 25.0f, 50.0f};
     Material white_mat = {
@@ -64,6 +51,14 @@ void render_stuff(ImageBuffer* buffer, SDL_Window* window) {
 	.bsdf = &lambert,
 	.params = &red
     };
+    Material green_mat = {
+	.bsdf = &lambert,
+	.params = &green
+    };
+    Material yellow_mat = {
+	.bsdf = &lambert,
+	.params = &yellow
+    };
 
     BSDF emissive = {
 	.f = NULL,
@@ -72,25 +67,7 @@ void render_stuff(ImageBuffer* buffer, SDL_Window* window) {
     };
     Material emissive_mat = {
 	.bsdf = &emissive,
-	.params = &emissive_blue
-    };
-
-    objects[0] = (Object) {
-	.kind = GEO_SPHERE,
-	.geometry = { .sphere = lamp_sphere },
-	.material = &emissive_mat,
-    };
-
-    objects[1] = (Object) {
-	.kind = GEO_PLANE,
-	.geometry = { .plane = p },
-	.material = &white_mat,
-    };
-
-    objects[2] = (Object) {
-	.kind = GEO_SPHERE,
-	.geometry = { .sphere = s },
-	.material = &red_mat
+	.params = &cream
     };
     
     Light l = {
@@ -100,15 +77,96 @@ void render_stuff(ImageBuffer* buffer, SDL_Window* window) {
     };
     
     float ratio = (float) WIDTH / HEIGHT;
-    OrthographicCamera cam = create_ortho_camera(
-	(Vec3) {-1.0f, 0.0f, 2.0f},
-	(Vec3) {0.0f, 0.0f, 0.0f},
-	ratio,
-	2.0f);
+    Camera cam = {
+	.kind = PERSPECTIVE,
+	.camera = {
+	    .perspective = create_perspective_camera(
+		(Vec3) {-8.0f, 0.0f, 3.0f},
+		(Vec3) {0.0f, 0.0f, 3.0f},
+		ratio,
+		70.0f)
+	}
+    };
     
     Scene sc = {
-	.object_count = 3,
-	.objects = objects,
+	.object_count = 7,
+	.objects = (Object[]) {
+	    {
+		.kind = GEO_SPHERE,
+		.geometry = {
+		    .sphere = {
+			.center = {0.0f, 0.0f, 6.0f},
+			.radius = .5f,
+		    }
+		},
+		.material = &emissive_mat,
+	    },
+	    {
+		.kind = GEO_PLANE,
+		.geometry = {
+		    .plane = {
+			.normal = normalized((Vec3){.0f, .0f, 1.0f}),
+			.distance = .0f,
+		    }
+		},
+		.material = &white_mat,
+	    },
+	    {
+		.kind = GEO_SPHERE,
+		.geometry = {
+		    .sphere = {
+			.center = {1.3f, -.5f, 1.5f},
+			.radius = 1.5f,
+		    }
+		},
+		.material = &yellow_mat
+	    },
+	    // WALLS
+	    // right
+	    {
+		.kind = GEO_PLANE,
+		.geometry = {
+		    .plane = {
+			.normal = {0.0f, 1.0f, 0.0f},
+			.distance = -3.0f
+		    }
+		},
+		.material = &green_mat
+	    },
+	    // back
+	    {
+		.kind = GEO_PLANE,
+		.geometry = {
+		    .plane = {
+			.normal = {-1.0f, 0.0f, 0.0f},
+			.distance = -3.0f
+		    }
+		},
+		.material = &white_mat
+	    },
+	    // left
+	    {
+		.kind = GEO_PLANE,
+		.geometry = {
+		    .plane = {
+			.normal = {0.0f, -1.0f, 0.0f},
+			.distance = -3.0f
+		    }
+		},
+		.material = &red_mat
+	    },
+	    // ceiling
+	    {
+		.kind = GEO_PLANE,
+		.geometry = {
+		    .plane = {
+			.normal = {0.0f, 0.0f, -1.0f},
+			.distance = -6.0f
+		    }
+		},
+		.material = &white_mat
+	    }
+	},
 	.light_count = 1,
 	.lights = &l,
     };
@@ -125,10 +183,11 @@ void render_stuff(ImageBuffer* buffer, SDL_Window* window) {
 	int now = SDL_GetTicks();
 	char total_time[256];
 	format_time((now - t0) / 1000, total_time);
-	printf("%6d samples | last %4dms | total %s\n",
+	printf("%6d samples | last %4dms | total %s\r",
 	       ++samples,
 	       now - t,
 	       total_time);
+	fflush(stdout);
 	
 	render_buffer(window, buffer);
 	SDL_UpdateWindowSurface(window);

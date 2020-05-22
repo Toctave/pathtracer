@@ -54,7 +54,7 @@ bool free_segment(Scene* sc, Vec3 a, Vec3 b) {
     return it.t * it.t > norm2(r.d);
 }
 
-void sample_scene(Scene* sc, OrthographicCamera camera, ImageBuffer* buffer) {
+void sample_scene(Scene* sc, Camera camera, ImageBuffer* buffer) {
     for (int y = 0; y < buffer->height; y++) {
 	for (int x = 0; x < buffer->width; x++) {
 	    float dx, dy;
@@ -62,7 +62,7 @@ void sample_scene(Scene* sc, OrthographicCamera camera, ImageBuffer* buffer) {
 	    float sx = (x + dx) / buffer->width;
 	    float sy = 1.0f - (y + dy) / buffer->height;
 	    
-	    Ray r = ortho_camera_ray(camera, sx, sy);
+	    Ray r = camera_ray(camera, sx, sy);
 
 	    add_pixel_sample(buffer, x, y,
 			     trace_ray(sc, r, 0).outgoing_radiance);
