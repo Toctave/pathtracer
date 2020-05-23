@@ -8,8 +8,6 @@
 #include <stdlib.h>
 #include <sys/sysinfo.h>
 
-#define WIDTH 100
-#define HEIGHT 100
 #define GAMMA 2.0f
 
 void handle_events(bool* quit) {
@@ -86,7 +84,7 @@ void render_stuff(ImageBuffer* buffer, SDL_Window* window) {
 	.intensity = 3.0f,
     };
     
-    float ratio = (float) WIDTH / HEIGHT;
+    float ratio = (float) buffer->width / buffer->height;
     Camera cam = {
 	.kind = PERSPECTIVE,
 	.camera = {
@@ -223,10 +221,66 @@ void render_stuff(ImageBuffer* buffer, SDL_Window* window) {
     }
 }
 
-int main(int argc, char** argv) {
-    ImageBuffer* buf = create_buffer(WIDTH, HEIGHT, GAMMA);
+typedef struct Options {
+    int width;
+    int height;
+    char* output_file;
+} Options;
 
-    SDL_Window* window = create_window("", WIDTH, HEIGHT);
+Options default_options() {
+    return (Options) {
+	.width = 200,
+	.height = 200,
+	.output_file = NULL
+    };
+}
+
+bool parse_args(int argc, char** argv, Options* options) {
+    int i = 1;
+    while (i < argc) {
+	if (!strcmp(argv[i], "-w") || !strcmp(argv[i], "-h")) {
+	    if (i + 1 >= argc) {
+		fprintf(stderr, "Invalid syntax\n");
+		return false;
+	    }
+	    int sz = atoi(argv[i + 1]);
+	    if (sz <= 0) {
+		fprintf(stderr, "Invalid size '%s'\n", argv[i + 1]);
+		return false;
+	    }
+	    if (argv[i][1] == 'w')
+		options->width = sz;
+	    else
+		options->height = sz;
+	    i += 2;
+	} else if (!strcmp(argv[i], "-o")) {
+	    if (i + 1 >= argc) {
+		fprintf(stderr, "Invalid syntax\n");
+		return false;
+	    }
+	    options->output_file = argv[i + 1];
+	    i += 2;
+	} else {
+	    fprintf(stderr, "Invalid argument '%s'\n", argv[i]);
+	    return false;
+	}
+    }
+}
+
+
+int main(int argc, char** argv) {
+    Options options = default_options();
+    if (!parse_args(argc, argv, &options)) {
+	return -1;
+    }
+    
+    ImageBuffer* buf = create_buffer(options.width, options.height, GAMMA);
+
+    SDL_Window* window = create_window("", options.width, options.height);
 
     render_stuff(buf, window);
+
+    if (options.output_file)
+	write_image_file(buf, options.output_file);
 }
+

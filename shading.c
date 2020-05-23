@@ -4,7 +4,7 @@
 #include <math.h>
 #include <stdio.h>
 
-#define MAX_DEPTH 3
+#define MAX_DEPTH 4
 
 Color shade(Intersect it, Scene* sc) {
     // @Todo : think about the right shifting amount

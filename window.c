@@ -23,41 +23,13 @@ SDL_Window* create_window(char* title, int width, int height) {
     return window;
 }
 
-void clamp(Color* color) {
-    if (color->r < 0.0f) color->r = 0.0f;
-    if (color->r > 1.0f) color->r = 1.0f;
-    if (color->g < 0.0f) color->g = 0.0f;
-    if (color->g > 1.0f) color->g = 1.0f;
-    if (color->b < 0.0f) color->b = 0.0f;
-    if (color->b > 1.0f) color->b = 1.0f;
-}
-
-
+// @Speed : could be better, not the bottleneck for now
 void render_buffer(SDL_Window* window, ImageBuffer* buffer) {
     const int channels = 3;
     unsigned char* pixels = malloc(buffer->width *
 				   buffer->height *
 				   channels);
-    float invGamma = 1.0f / buffer->gamma;
-    for (int i = 0; i < buffer->width * buffer->height; i++) {
-	if (!buffer->data[i].samples) {
-	    continue;
-	}
-	Color c = cscale(buffer->data[i].color,
-		       1.0f / buffer->data[i].samples);
-	clamp(&c);
-    	pixels[channels * i] =
-	    (unsigned char) (powf(c.r, invGamma) * 255.0f);
-    	pixels[channels * i + 1] = 
-	    (unsigned char) (powf(c.g, invGamma) * 255.0f);
-	pixels[channels * i + 2] =
-	    (unsigned char) (powf(c.b, invGamma) * 255.0f);
-
-	float u = pixels[channels * i] +
-	    pixels[channels * i + 1] +
-	    pixels[channels * i + 2];
-    }
-
+    raw_pixel_data(buffer, pixels);
     Uint32 rmask, gmask, bmask, amask;
 #if SDL_BYTEORDER == SDL_BIG_ENDIAN
     rmask = 0xff0000;

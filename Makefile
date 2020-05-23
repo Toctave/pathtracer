@@ -4,7 +4,7 @@ LIBS = sdl2
 BINARY_NAME = raytracer
 SRCS = $(wildcard *.c)
 LDFLAGS = $(shell pkg-config --libs $(LIBS)) -lm -pthread
-CFLAGS = $(shell pkg-config --libs $(LIBS)) -pthread
+CFLAGS = $(shell pkg-config --libs $(LIBS)) -pthread -Iinclude
 
 DEBUG_FLAGS = -g -pg
 RELEASE_FLAGS = -O3
