@@ -28,7 +28,10 @@ void format_time(int seconds, char* buffer) {
     sprintf(buffer, "%02dh %02dm %02ds", hours, minutes, seconds);
 }
 
-void render_stuff(ImageBuffer* buffer, SDL_Window* window) {
+void render_stuff(ImageBuffer* buffer,
+		  SDL_Window* window,
+		  int max_samples,
+		  int max_seconds) {
     Color white = {1.0f, 1.0f, 1.0f};
     Color cream = {50.0f, 45.0f, 40.0f};
     Color red = {1.0f, .0f, .0f};
@@ -209,21 +212,30 @@ void render_stuff(ImageBuffer* buffer, SDL_Window* window) {
 	
 	render_buffer(window, buffer);
 	SDL_UpdateWindowSurface(window);
-	
+
+	++samples;
 	int now = SDL_GetTicks();
 	char total_time[256];
-	format_time((now - t0) / 1000, total_time);
+	int total_seconds = (now - t0) / 1000;
+	format_time(total_seconds, total_time);
 	printf("%6d samples | last %4dms | total %s\r",
 	       ++samples,
 	       now - t,
 	       total_time);
 	fflush(stdout);
+
+	if ((max_samples > 0 && samples >= max_samples) ||
+	    (max_seconds > 0 && total_seconds >= max_seconds)) {
+	    quit = true;
+	}
     }
 }
 
 typedef struct Options {
     int width;
     int height;
+    int max_samples;
+    int max_seconds;
     char* output_file;
 } Options;
 
@@ -231,27 +243,37 @@ Options default_options() {
     return (Options) {
 	.width = 200,
 	.height = 200,
-	.output_file = NULL
+	.output_file = NULL,
+	.max_samples = -1,
+	.max_seconds = -1
     };
 }
 
 bool parse_args(int argc, char** argv, Options* options) {
     int i = 1;
     while (i < argc) {
-	if (!strcmp(argv[i], "-w") || !strcmp(argv[i], "-h")) {
+	if (!strcmp(argv[i], "-w") ||
+	    !strcmp(argv[i], "-h") ||
+	    !strcmp(argv[i], "-s") ||
+	    !strcmp(argv[i], "-t")) {
 	    if (i + 1 >= argc) {
 		fprintf(stderr, "Invalid syntax\n");
 		return false;
 	    }
-	    int sz = atoi(argv[i + 1]);
-	    if (sz <= 0) {
-		fprintf(stderr, "Invalid size '%s'\n", argv[i + 1]);
+	    int value = atoi(argv[i + 1]);
+	    if (value <= 0) {
+		fprintf(stderr, "Invalid value '%s' for parameter '%s'\n", argv[i + 1], argv[i]);
 		return false;
 	    }
-	    if (argv[i][1] == 'w')
-		options->width = sz;
-	    else
-		options->height = sz;
+	    if (!strcmp(argv[i], "-w"))
+		options->width = value;
+	    else if (!strcmp(argv[i], "-h"))
+		options->height = value;
+	    else if (!strcmp(argv[i], "-s"))
+		options->max_samples = value;
+	    else if (!strcmp(argv[i], "-t"))
+		options->max_seconds = value;
+	    
 	    i += 2;
 	} else if (!strcmp(argv[i], "-o")) {
 	    if (i + 1 >= argc) {
@@ -265,6 +287,7 @@ bool parse_args(int argc, char** argv, Options* options) {
 	    return false;
 	}
     }
+    return true;
 }
 
 
@@ -278,7 +301,8 @@ int main(int argc, char** argv) {
 
     SDL_Window* window = create_window("", options.width, options.height);
 
-    render_stuff(buf, window);
+    render_stuff(buf, window, options.max_samples, options.max_seconds);
+    printf("\n");
 
     if (options.output_file)
 	write_image_file(buf, options.output_file);

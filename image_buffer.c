@@ -47,7 +47,7 @@ void raw_pixel_data(ImageBuffer* buffer, unsigned char* pixels) {
     	pixels[channels * i + 1] = 
 	    (unsigned char) (powf(c.g, invGamma) * 255.0f);
 	pixels[channels * i + 2] =
-	    (unsigned char) (powf(c.b, invGamma) * 255.0f);
+	(unsigned char) (powf(c.b, invGamma) * 255.0f);
 
 	float u = pixels[channels * i] +
 	    pixels[channels * i + 1] +
@@ -77,35 +77,5 @@ bool write_image_file(ImageBuffer* buffer, char* filepath) {
 Color gray(float d) {
     Color rval = {d, d, d};
     return rval;
-}
-
-Color cadd(Color a, Color b) {
-    Color rval = {
-	a.r + b.r,
-	a.g + b.g,
-	a.b + b.b
-    };
-    return rval;
-}
-
-Color cmul(Color a, Color b) {
-    return (Color) {
-	a.r * b.r,
-	a.g * b.g,
-	a.b * b.b
-    };
-}
-
-Color cscale(Color a, float f) {
-    return (Color) {a.r * f, a.g * f, a.b * f};
-}
-
-void clamp(Color* color) {
-    if (color->r < 0.0f) color->r = 0.0f;
-    if (color->r > 1.0f) color->r = 1.0f;
-    if (color->g < 0.0f) color->g = 0.0f;
-    if (color->g > 1.0f) color->g = 1.0f;
-    if (color->b < 0.0f) color->b = 0.0f;
-    if (color->b > 1.0f) color->b = 1.0f;
 }
 
