@@ -4,6 +4,7 @@
 #include "camera.h"
 #include "bsdf.h"
 #include "sampling.h"
+#include "intersections.h"
 #include <stddef.h> // size_t
 
 struct Light;

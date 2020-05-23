@@ -1,6 +1,5 @@
 #pragma once
 #include <stdbool.h>
-#include "image_buffer.h"
 
 #define EPSILON 1e-6
 
@@ -27,18 +26,6 @@ typedef struct Plane {
     Vec3 normal;
     float distance;
 } Plane;
-
-typedef struct Intersect {
-    int depth;
-    bool hit;
-    Vec3 point;
-    Vec3 normal;
-    float t;
-    Vec3 outgoing; // the light's direction, not the algorithm's
-    Color outgoing_radiance;
-    Material* material;
-    Sampler* sampler;
-} Intersect;
 
 float norm2(Vec3 v);
 float norm(Vec3 v);
@@ -107,10 +94,3 @@ static inline float dot(Vec3 a, Vec3 b) {
 Vec3 world2basis(Vec3 v, Vec3 x, Vec3 y, Vec3 z);
 Vec3 basis2world(Vec3 v, Vec3 x, Vec3 y, Vec3 z);
 
-Color vec3_to_color(Vec3 v);
-
-bool intersect_sphere(Sphere s, Ray r, Intersect* intersect);
-bool intersects_sphere(Sphere s, Ray r);
-
-bool intersect_plane(Plane p, Ray r, Intersect* intersect);
-bool intersects_plane(Plane p, Ray r);
