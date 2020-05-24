@@ -12,6 +12,7 @@ ImageBuffer* create_buffer(int width, int height, float gamma) {
     rval->width = width;
     rval->height = height;
     rval->gamma = gamma;
+    rval->inv_gamma = 1.0f / gamma;
     return rval;
 }
 
@@ -32,26 +33,32 @@ void add_pixel_sample(ImageBuffer* buffer, int x, int y, Color c) {
     buffer->data[i].color.b += powf(c.b, buffer->gamma);
 }
 
-void raw_pixel_data(ImageBuffer* buffer, unsigned char* pixels) {
+void rgb_pixel_value(ImageBuffer* buffer, int i,
+		     unsigned char* r,
+		     unsigned char* g,
+		     unsigned char* b) {
+    Color c = cscale(buffer->data[i].color,
+		     1.0f / buffer->data[i].samples);
+    clamp(&c);
+    *r = 
+	(unsigned char) (powf(c.r, buffer->inv_gamma) * 255.0f);
+    *g =
+	(unsigned char) (powf(c.g, buffer->inv_gamma) * 255.0f);
+    *b = 
+	(unsigned char) (powf(c.b, buffer->inv_gamma) * 255.0f);
+
+}
+
+void dump_pixel_data(ImageBuffer* buffer, unsigned char* pixels) {
     const int channels = 3;
-    float invGamma = 1.0f / buffer->gamma;
     for (int i = 0; i < buffer->width * buffer->height; i++) {
 	if (!buffer->data[i].samples) {
 	    continue;
 	}
-	Color c = cscale(buffer->data[i].color,
-		       1.0f / buffer->data[i].samples);
-	clamp(&c);
-    	pixels[channels * i] =
-	    (unsigned char) (powf(c.r, invGamma) * 255.0f);
-    	pixels[channels * i + 1] = 
-	    (unsigned char) (powf(c.g, invGamma) * 255.0f);
-	pixels[channels * i + 2] =
-	(unsigned char) (powf(c.b, invGamma) * 255.0f);
-
-	float u = pixels[channels * i] +
-	    pixels[channels * i + 1] +
-	    pixels[channels * i + 2];
+	rgb_pixel_value(buffer, i,
+			&pixels[channels * i],
+			&pixels[channels * i + 1],
+			&pixels[channels * i + 2]);
     }
 }
 
@@ -60,7 +67,7 @@ bool write_image_file(ImageBuffer* buffer, char* filepath) {
     unsigned char* pixels = malloc(buffer->width *
 				   buffer->height *
 				   channels);
-    raw_pixel_data(buffer, pixels);
+    dump_pixel_data(buffer, pixels);
     bool success = !stbi_write_png(
 	filepath,
 	buffer->width,

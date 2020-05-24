@@ -23,39 +23,15 @@ SDL_Window* create_window(char* title, int width, int height) {
     return window;
 }
 
-// @Speed : could be better, not the bottleneck for now
 void render_buffer(SDL_Window* window, ImageBuffer* buffer) {
-    const int channels = 3;
-    unsigned char* pixels = malloc(buffer->width *
-				   buffer->height *
-				   channels);
-    raw_pixel_data(buffer, pixels);
-    Uint32 rmask, gmask, bmask, amask;
-#if SDL_BYTEORDER == SDL_BIG_ENDIAN
-    rmask = 0xff0000;
-    gmask = 0x00ff00;
-    bmask = 0x0000ff;
-#else
-    rmask = 0x0000ff;
-    gmask = 0x00ff00;
-    bmask = 0xff0000;
-#endif
-
-    SDL_Surface* surface =
-	SDL_CreateRGBSurfaceFrom(pixels,
-				 buffer->width,
-				 buffer->height,
-				 channels * sizeof(unsigned char) * 8,
-				 buffer->width * channels,
-				 rmask,
-				 gmask,
-				 bmask,
-				 0);
-
-    int err = SDL_BlitSurface(surface, NULL,
-		    SDL_GetWindowSurface(window), NULL);
-    if (err < 0)
-	log_sdl_error("Failed to blit image");
-
-    free(pixels);
+    SDL_Surface* window_surface = SDL_GetWindowSurface(window);
+    Uint32* pixels = (Uint32 *) window_surface->pixels;
+    SDL_LockSurface(window_surface);
+    for (int i = 0; i < buffer->width * buffer->height; i++) {
+	unsigned char r, g, b;
+	rgb_pixel_value(buffer, i, &r, &g, &b);
+	pixels[i] = SDL_MapRGBA(window_surface->format, r, g, b, 255);
+    }
+    SDL_UnlockSurface(window_surface);
+    SDL_UpdateWindowSurface(window);
 }
