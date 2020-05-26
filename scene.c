@@ -21,7 +21,7 @@ bool intersect_object(Object obj, Ray r, Intersect* it) {
     return did_intersect;
 }
 
-Intersect trace_ray(Scene* sc, Ray r, int depth, Sampler* sampler) {
+Color trace_ray(Scene* sc, Ray r, int depth, Sampler* sampler) {
     Intersect it;
     it.hit = false;
     it.t = INFINITY;
@@ -32,12 +32,14 @@ Intersect trace_ray(Scene* sc, Ray r, int depth, Sampler* sampler) {
 	intersect_object(sc->objects[i], r, &it);
     }
 
+    Color rval;
+
     if (it.hit) {
-	it.outgoing_radiance = shade(it, sc);
+	rval = shade(it, sc);
     } else {
-	it.outgoing_radiance = gray(0.0f); // @Todo : color constants
+	rval = gray(0.0f); // @Todo : color constants
     }
-    return it;
+    return rval;
 }
 
 
@@ -67,7 +69,7 @@ void sample_scene(Scene* sc, Camera camera, ImageBuffer* buffer) {
 	    Ray r = camera_ray(camera, sx, sy);
 
 	    add_pixel_sample(buffer, x, y,
-			     trace_ray(sc, r, 0, sc->sampler).outgoing_radiance);
+			     trace_ray(sc, r, 0, sc->sampler));
 	}
     }
 
