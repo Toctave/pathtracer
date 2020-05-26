@@ -55,6 +55,7 @@ bool free_segment(Scene* sc, Vec3 a, Vec3 b) {
     return it.t * it.t > norm2(r.d);
 }
 
+/*
 void sample_scene(Scene* sc, Camera camera, ImageBuffer* buffer) {
     for (int y = 0; y < buffer->height; y++) {
 	for (int x = 0; x < buffer->width; x++) {
@@ -71,3 +72,4 @@ void sample_scene(Scene* sc, Camera camera, ImageBuffer* buffer) {
     }
 
 }
+*/

@@ -25,8 +25,6 @@ typedef struct Scene {
     
     size_t light_count;
     struct Light* lights;
-
-    Sampler* sampler;
 } Scene;
 
 void sample_scene(Scene* sc, Camera camera, ImageBuffer* buffer);
