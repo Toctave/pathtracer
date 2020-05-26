@@ -2,12 +2,18 @@
 #include <math.h>
 #include <stdlib.h>
 
+void create_samplers(Sampler* samplers, size_t n) {
+    for (int i = 0; i < n; i++) {
+	pcg32_srandom_r(&samplers[i].pcg_state, i * 4861342, i);
+    }
+}
+
 unsigned int sample_int(Sampler* sampler) {
-    return rand_r(&sampler->seed);
+    return pcg32_random_r(&sampler->pcg_state);
 }
 
 float rnd(Sampler* sampler) {
-    return (float) rand_r(&sampler->seed) / RAND_MAX;
+    return (float) sample_int(sampler) / RAND_MAX;
 }
 
 void sample_unit_square(Sampler* sampler, float* x, float* y, float* pdf) {

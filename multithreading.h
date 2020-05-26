@@ -19,8 +19,8 @@ typedef struct SceneSampleInfo {
     Scene* scene;
     Camera camera;
 
-    Sampler* sampler;
+    Sampler* samplers;
 } SceneSampleInfo;
 
 void* sample_scene_slave(void* data);
-void sample_scene_master(Scene* scene, Camera camera, ImageBuffer* buffer, int num_threads);
+void sample_scene_master(Scene* scene, Camera camera, ImageBuffer* buffer, Sampler* samplers, int num_threads);

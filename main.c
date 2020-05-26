@@ -99,9 +99,6 @@ void render_stuff(ImageBuffer* buffer,
 	}
     };
 
-    Sampler sampler;
-    sampler.seed = 0;
-    
     Scene sc = {
 	.object_count = 8,
 	.objects = (Object[]) {
@@ -193,8 +190,6 @@ void render_stuff(ImageBuffer* buffer,
 	},
 	.light_count = 1,
 	.lights = &l,
-
-	.sampler = &sampler
     };
     
     clear_buffer(buffer);
@@ -202,13 +197,16 @@ void render_stuff(ImageBuffer* buffer,
     int samples = 0;
     int t0 = SDL_GetTicks();
     int n_cores = get_nprocs();
+    printf("Detected %d cores, rendering with %d threads.\n", n_cores, n_cores);
+    Sampler samplers[buffer->width * buffer->height];
+    create_samplers(samplers, buffer->width * buffer->height);
     while (!quit) {
 	int t = SDL_GetTicks();
 
 	handle_events(&quit);
 		
 	//sample_scene(&sc, cam, buffer);
-	sample_scene_master(&sc, cam, buffer, n_cores); 
+	sample_scene_master(&sc, cam, buffer, samplers, n_cores); 
 	
 	render_buffer(window, buffer);
 	SDL_UpdateWindowSurface(window);
@@ -301,6 +299,7 @@ int main(int argc, char** argv) {
 
     SDL_Window* window = create_window("", options.width, options.height);
 
+    render_buffer(window, buf);
     render_stuff(buf, window, options.max_samples, options.max_seconds);
     printf("\n");
 
