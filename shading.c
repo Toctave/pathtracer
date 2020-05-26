@@ -5,13 +5,18 @@
 #include <math.h>
 #include <stdio.h>
 
-#define MAX_DEPTH 1
+#define MAX_DEPTH 3
 
 Color shade(Intersect it, Scene* sc) {
     // @Todo : think about the right shifting amount
     Vec3 surface_point = vadd(it.point,
 			      vmul(it.normal, 2 * EPSILON));
-    Vec3 u = normalized(cross(it.outgoing, it.normal));
+    Vec3 u = cross(it.outgoing, it.normal);
+    if (norm2(u) < EPSILON) {
+	u = cross(it.outgoing, (Vec3) {0.004f, 0.0212f, 0.9998f});
+    }
+    u = normalized(u);
+
     Vec3 v = cross(it.normal, u);
 
     // EMITTED LIGHT

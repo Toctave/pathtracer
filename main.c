@@ -8,7 +8,7 @@
 #include <stdlib.h>
 #include <sys/sysinfo.h>
 
-#define GAMMA 2.0f
+#define GAMMA 2.2f
 
 void handle_events(bool* quit) {
     SDL_Event event;
@@ -31,9 +31,10 @@ void format_time(int seconds, char* buffer) {
 void render_stuff(ImageBuffer* buffer,
 		  SDL_Window* window,
 		  int max_samples,
-		  int max_seconds) {
+		  int max_seconds,
+		  bool uniform_sampling) {
     Color white = {1.0f, 1.0f, 1.0f};
-    Color cream = {50.0f, 45.0f, 40.0f};
+    Color cream = {500.0f, 450.0f, 400.0f};
     Color red = {1.0f, .0f, .0f};
     Color green = {0.0f, 1.0f, .0f};
     Color yellow = {1.0f, 1.0f, .0f};
@@ -41,7 +42,7 @@ void render_stuff(ImageBuffer* buffer,
 
     BSDF lambert = {
 	.f = lambert_bsdf,
-	.sampler = cosine_bsdf_sampler,
+	.sampler = uniform_sampling ? uniform_bsdf_sampler : cosine_weighted_bsdf_sampler,
 	.emitted = NULL
     };
     Material white_mat = {
@@ -194,11 +195,11 @@ void render_stuff(ImageBuffer* buffer,
     
     clear_buffer(buffer);
     bool quit = false;
-    int samples = 0;
-    int t0 = SDL_GetTicks();
+    long int samples = 0;
+    long int t0 = SDL_GetTicks();
     int n_cores = get_nprocs();
     printf("Detected %d cores, rendering with %d threads.\n", n_cores, n_cores);
-    Sampler samplers[buffer->width * buffer->height];
+    Sampler* samplers = malloc(sizeof(Sampler) * buffer->width * buffer->height);
     create_samplers(samplers, buffer->width * buffer->height);
     while (!quit) {
 	int t = SDL_GetTicks();
@@ -208,15 +209,15 @@ void render_stuff(ImageBuffer* buffer,
 	//sample_scene(&sc, cam, buffer);
 	sample_scene_master(&sc, cam, buffer, samplers, n_cores); 
 	
-	render_buffer(window, buffer);
+	render_buffer(window, buffer, GAMMA);
 	SDL_UpdateWindowSurface(window);
 
 	++samples;
-	int now = SDL_GetTicks();
+	long int now = SDL_GetTicks();
 	char total_time[256];
-	int total_seconds = (now - t0) / 1000;
+	long int total_seconds = (now - t0) / 1000;
 	format_time(total_seconds, total_time);
-	printf("%6d samples | last %4dms | total %s\r",
+	printf("%6ld samples | last %4ldms | total %s\r",
 	       ++samples,
 	       now - t,
 	       total_time);
@@ -227,14 +228,16 @@ void render_stuff(ImageBuffer* buffer,
 	    quit = true;
 	}
     }
+    free(samplers);
 }
 
 typedef struct Options {
-    int width;
-    int height;
-    int max_samples;
-    int max_seconds;
+    long width;
+    long height;
+    long max_samples;
+    long max_seconds;
     char* output_file;
+    bool uniform_sampling;
 } Options;
 
 Options default_options() {
@@ -243,7 +246,8 @@ Options default_options() {
 	.height = 200,
 	.output_file = NULL,
 	.max_samples = -1,
-	.max_seconds = -1
+	.max_seconds = -1,
+	.uniform_sampling = false
     };
 }
 
@@ -258,7 +262,7 @@ bool parse_args(int argc, char** argv, Options* options) {
 		fprintf(stderr, "Invalid syntax\n");
 		return false;
 	    }
-	    int value = atoi(argv[i + 1]);
+	    long int value = atoi(argv[i + 1]);
 	    if (value <= 0) {
 		fprintf(stderr, "Invalid value '%s' for parameter '%s'\n", argv[i + 1], argv[i]);
 		return false;
@@ -280,6 +284,9 @@ bool parse_args(int argc, char** argv, Options* options) {
 	    }
 	    options->output_file = argv[i + 1];
 	    i += 2;
+	} else if (!strcmp(argv[i], "-u")) {
+	    options->uniform_sampling = true;
+	    i++;
 	} else {
 	    fprintf(stderr, "Invalid argument '%s'\n", argv[i]);
 	    return false;
@@ -294,16 +301,15 @@ int main(int argc, char** argv) {
     if (!parse_args(argc, argv, &options)) {
 	return -1;
     }
-    
-    ImageBuffer* buf = create_buffer(options.width, options.height, GAMMA);
+    ImageBuffer* buf = create_buffer(options.width, options.height);
 
-    SDL_Window* window = create_window("", options.width, options.height);
+    SDL_Window* window = create_window(options.output_file ? options.output_file : "Pathtracer", options.width, options.height);
 
-    render_buffer(window, buf);
-    render_stuff(buf, window, options.max_samples, options.max_seconds);
+    render_buffer(window, buf, GAMMA);
+    render_stuff(buf, window, options.max_samples, options.max_seconds, options.uniform_sampling);
     printf("\n");
 
     if (options.output_file)
-	write_image_file(buf, options.output_file);
+	write_image_file(buf, options.output_file, GAMMA);
 }
 

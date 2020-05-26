@@ -23,13 +23,14 @@ SDL_Window* create_window(char* title, int width, int height) {
     return window;
 }
 
-void render_buffer(SDL_Window* window, ImageBuffer* buffer) {
+void render_buffer(SDL_Window* window, ImageBuffer* buffer, float gamma) {
     SDL_Surface* window_surface = SDL_GetWindowSurface(window);
     Uint32* pixels = (Uint32 *) window_surface->pixels;
     SDL_LockSurface(window_surface);
+    float inv_gamma = 1.0f / gamma;
     for (int i = 0; i < buffer->width * buffer->height; i++) {
 	unsigned char r, g, b;
-	rgb_pixel_value(buffer, i, &r, &g, &b);
+	rgb_pixel_value(buffer, i, &r, &g, &b, inv_gamma);
 	pixels[i] = SDL_MapRGBA(window_surface->format, r, g, b, 255);
     }
     SDL_UnlockSurface(window_surface);

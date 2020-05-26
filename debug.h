@@ -4,6 +4,7 @@
 #include <signal.h>
 #include <math.h>
 
+#ifdef DEBUG
 #define ASSERT(x) \
     if (!(x)) \
     { \
@@ -11,4 +12,11 @@
 	raise(SIGABRT); \
     }
 
-#define FEQ(x, y) (fabs((x) - (y)) < 1e-3)
+#define FEQ(x, y) (fabs((x) - (y)) < 1e-2)
+
+#else
+
+#define ASSERT(x)
+#define FEQ(x, y)
+
+#endif

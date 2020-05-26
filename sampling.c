@@ -8,12 +8,14 @@ void create_samplers(Sampler* samplers, size_t n) {
     }
 }
 
-unsigned int sample_int(Sampler* sampler) {
+uint32_t sample_int(Sampler* sampler) {
     return pcg32_random_r(&sampler->pcg_state);
 }
 
 float rnd(Sampler* sampler) {
-    return (float) sample_int(sampler) / RAND_MAX;
+    uint32_t a = sample_int(sampler);
+    a = (0x7f << 23) | (a & 0x007fffff);
+    return *((float*) &a) - 1.0f;
 }
 
 void sample_unit_square(Sampler* sampler, float* x, float* y, float* pdf) {

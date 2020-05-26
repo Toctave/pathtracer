@@ -16,20 +16,19 @@ typedef struct ImageBuffer {
     int width;
     int height;
     PixelData* data;
-    float gamma;
-    float inv_gamma;
 } ImageBuffer;
 
 
-ImageBuffer* create_buffer(int width, int height, float gamma);
+ImageBuffer* create_buffer(int width, int height);
 void clear_buffer(ImageBuffer* buffer);
 void add_pixel_sample(ImageBuffer* buffer, int x, int y, Color c);
-bool write_image_file(ImageBuffer* buffer, char* filepath);
-void dump_pixel_data(ImageBuffer* buffer, unsigned char* pixels);
+bool write_image_file(ImageBuffer* buffer, char* filepath, float gamma);
+void dump_pixel_data(ImageBuffer* buffer, unsigned char* pixels, float gamma);
 void rgb_pixel_value(ImageBuffer* buffer, int i,
 		     unsigned char* r,
 		     unsigned char* g,
-		     unsigned char* b);
+		     unsigned char* b,
+		     float inv_gamma);
 
 Color mix(Color a, Color b, float t);
 Color gray(float d);
