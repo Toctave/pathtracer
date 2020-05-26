@@ -31,4 +31,4 @@ typedef struct Scene {
 
 void sample_scene(Scene* sc, Camera camera, ImageBuffer* buffer);
 bool free_segment(Scene* sc, Vec3 a, Vec3 b);
-Intersect trace_ray(Scene* sc, Ray r, int depth, Sampler* s);
+Color trace_ray(Scene* sc, Ray r, int depth, Sampler* s);

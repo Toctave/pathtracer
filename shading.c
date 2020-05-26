@@ -1,10 +1,11 @@
 #include "shading.h"
 #include "bsdf.h"
 #include "scene.h"
+#include "debug.h"
 #include <math.h>
 #include <stdio.h>
 
-#define MAX_DEPTH 4
+#define MAX_DEPTH 1
 
 Color shade(Intersect it, Scene* sc) {
     // @Todo : think about the right shifting amount
@@ -21,28 +22,6 @@ Color shade(Intersect it, Scene* sc) {
     }
 
     if (it.material->bsdf->f) {
-	// DIRECT LIGHTING
-	for (int i = 0; i < sc->light_count && false; i++) {
-	    Light l = sc->lights[i];
-	    if (free_segment(sc, surface_point, l.position)) {
-		Vec3 tolight = normalized(
-		    vsub(l.position, it.point)
-		    );
-
-		Vec3 in = world2basis(tolight, u, v, it.normal);
-
-		float light_attenuation = 1.0f / dot(tolight, tolight);
-
-		// @Speed : too many dereferences
-		Color f =
-		    it.material->bsdf->f(it.material->params, in, local_out);
-		rval = cadd(rval,
-			    cscale(cmul(f, l.color),
-				   light_attenuation * l.intensity
-				)
-		    );
-	    }
-	}
 	// INDIRECT LIGHTING
 	if (it.depth < MAX_DEPTH) {
 	    float pdf;
@@ -52,15 +31,18 @@ Color shade(Intersect it, Scene* sc) {
 		.d = basis2world(bounce_sample, u, v, it.normal)
 	    };
 
-	    Intersect bounce_it = trace_ray(sc, bounce, it.depth + 1, it.sampler);
+	    ASSERT(FEQ(norm2(local_out), 1.0f));
+	    ASSERT(FEQ(norm2(u), 1.0f));
+	    ASSERT(FEQ(norm2(v), 1.0f));
+	    ASSERT(FEQ(norm2(bounce.d), 1.0f));
+	    
+	    Color incoming_radiance = trace_ray(sc, bounce, it.depth + 1, it.sampler);
 	    Color f = it.material->bsdf->f(it.material->params,
 					   bounce_sample, local_out);
-	    Color dc = cmul(
-		bounce_it.outgoing_radiance,
-		f);
-	    float inv_pdf = pdf > EPSILON ? 1.0f / pdf : 1.0f;
-	    rval = cadd(rval,
-			cscale(dc, inv_pdf));
+	    float inv_pdf = pdf > EPSILON ? (1.0f / pdf) : 1.0f;
+	    rval = cscale(
+		cmul(incoming_radiance, f),
+		inv_pdf * bounce_sample.z);
 	}
     }
 

@@ -24,7 +24,7 @@ typedef struct Material {
 
 // Samplers
 Vec3 uniform_bsdf_sampler(Sampler* sampler, Vec3 out, float* pdf);
-Vec3 cosine_bsdf_sampler(Sampler* sampler, Vec3 out, float* pdf);
+Vec3 cosine_weighted_bsdf_sampler(Sampler* sampler, Vec3 out, float* pdf);
 Vec3 perfect_reflection_sampler(Sampler* sampler, Vec3 out, float* pdf);
 
 // Transmission functions
