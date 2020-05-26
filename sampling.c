@@ -29,7 +29,7 @@ void sample_unit_disc(Sampler* sampler, float* x, float* y, float* pdf) {
 	*pdf = 1.0f / M_PI;
 }
 
-Vec3 sample_unit_hemisphere(Sampler* sampler, float* pdf) {
+Vec3 sample_uniform_hemisphere(Sampler* sampler, float* pdf) {
     float cosTheta, v;
     sample_unit_square(sampler, &cosTheta, &v, NULL);
     float sinTheta = sqrtf(1 - cosTheta * cosTheta);
@@ -44,3 +44,15 @@ Vec3 sample_unit_hemisphere(Sampler* sampler, float* pdf) {
 	cosTheta
     };
 }
+
+Vec3 sample_cosine_weighted_hemisphere(Sampler* sampler, float* pdf) {
+    Vec3 sample;
+    sample_unit_disc(sampler, &sample.x, &sample.y, NULL);
+
+    float z2 = 1.0f - sample.x * sample.x - sample.y * sample.y;
+    sample.z = sqrtf(z2 > 0.0f ? z2 : 0.0f);
+    if (pdf)
+	*pdf = sample.z / M_PI; // p(theta, phi) = cos(theta) / pi
+    return sample;
+}
+
