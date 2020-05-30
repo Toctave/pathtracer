@@ -26,11 +26,13 @@ void sample_scene_master(Scene* scene, Camera camera, ImageBuffer* buffer, Sampl
 		       NULL,
 		       sample_scene_slave,
 		       (void *) &infos[i]);
+	//sample_scene_slave((void*) &infos[i]);
     }
-
+    
     for (int i = 0 ; i < num_threads; i++) {
 	pthread_join(threads[i], NULL);
     }
+    
 }
 
 void* sample_scene_slave(void* data) {
@@ -39,6 +41,7 @@ void* sample_scene_slave(void* data) {
     for (int y = ss->ymin; y < ss->ymax; y++) {
 	for (int x = ss->xmin; x < ss->xmax; x++) {
 	    Sampler* sampler = &ss->samplers[y * ss->buffer->width + x];
+	    sampler->current_depth = 0;
 	    float dx, dy;
 	    sample_unit_square(sampler, &dx, &dy, NULL);
 	    float sx = (x + dx) / ss->buffer->width;
@@ -46,7 +49,7 @@ void* sample_scene_slave(void* data) {
 	    Ray r = camera_ray(ss->camera, sx, sy);
 
 	    pthread_mutex_lock(&ss->buffer_mutex);
-	    add_pixel_sample(ss->buffer, x, y,
+	    add_pixel_sample(ss->buffer, x, y, dx, dy,
 			     trace_ray(ss->scene, r, 0, sampler));
 	    pthread_mutex_unlock(&ss->buffer_mutex);
 	}

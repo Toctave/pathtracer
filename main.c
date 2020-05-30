@@ -34,7 +34,7 @@ void render_stuff(ImageBuffer* buffer,
 		  int max_seconds,
 		  bool uniform_sampling) {
     Color white = {1.0f, 1.0f, 1.0f};
-    Color cream = {500.0f, 450.0f, 400.0f};
+    Color cream = cscale((Color){1.0f, .9f, .8f}, 20.0f);
     Color red = {1.0f, .0f, .0f};
     Color green = {0.0f, 1.0f, .0f};
     Color yellow = {1.0f, 1.0f, .0f};
@@ -89,39 +89,32 @@ void render_stuff(ImageBuffer* buffer,
     };
     
     float ratio = (float) buffer->width / buffer->height;
+    float fov = 90.0f;
     Camera cam = {
 	.kind = PERSPECTIVE,
 	.camera = {
 	    .perspective = create_perspective_camera(
-		(Vec3) {-8.0f, 0.0f, 3.0f},
+		(Vec3) {-7.5f, 0.0f, 3.0f},
 		(Vec3) {0.0f, 0.0f, 3.0f},
 		ratio,
-		70.0f)
+		fov)
 	}
     };
 
     Scene sc = {
-	.object_count = 8,
 	.objects = (Object[]) {
 	    {
-		.kind = GEO_SPHERE,
+		.kind = GEO_PARTIAL_PLANE,
 		.geometry = {
-		    .sphere = {
-			.center = {0.0f, 0.0f, 6.0f},
-			.radius = .5f,
-		    }
+		    .partial_plane = create_partial_plane(
+			(Vec3) {0.0f, 0.0f, 5.95f},
+			(Vec3) {1.0f, 0.0f, 0.0f},
+			(Vec3) {0.0f, 1.0f, 0.0f},
+			-2, -2,
+			2, 2
+		    )
 		},
 		.material = &emissive_mat,
-	    },
-	    {
-		.kind = GEO_PLANE,
-		.geometry = {
-		    .plane = {
-			.normal = normalized((Vec3){.0f, .0f, 1.0f}),
-			.distance = .0f,
-		    }
-		},
-		.material = &white_mat,
 	    },
 	    {
 		.kind = GEO_SPHERE,
@@ -146,45 +139,72 @@ void render_stuff(ImageBuffer* buffer,
 	    // WALLS
 	    // right
 	    {
-		.kind = GEO_PLANE,
+		.kind = GEO_PARTIAL_PLANE,
 		.geometry = {
-		    .plane = {
-			.normal = {0.0f, 1.0f, 0.0f},
-			.distance = -3.0f
-		    }
+		    .partial_plane = create_partial_plane(
+			(Vec3) {0.0f, -3.0f, 3.0f},
+			(Vec3) {1.0f, 0.0f, 0.0f},
+			(Vec3) {0.0f, 0.0f, 1.0f},
+			-3, -3,
+			3, 3
+		    )
 		},
-		.material = &green_mat
+		.material = &green_mat,
 	    },
 	    // back
 	    {
-		.kind = GEO_PLANE,
+		.kind = GEO_PARTIAL_PLANE,
 		.geometry = {
-		    .plane = {
-			.normal = {-1.0f, 0.0f, 0.0f},
-			.distance = -3.0f
-		    }
+		    .partial_plane = create_partial_plane(
+			(Vec3) {3.0f, 0.0f, 3.0f},
+			(Vec3) {0.0f, 1.0f, 0.0f},
+			(Vec3) {0.0f, 0.0f, 1.0f},
+			-3, -3,
+			3, 3
+		    )
 		},
 		.material = &white_mat
 	    },
 	    // left
 	    {
-		.kind = GEO_PLANE,
+		.kind = GEO_PARTIAL_PLANE,
 		.geometry = {
-		    .plane = {
-			.normal = {0.0f, -1.0f, 0.0f},
-			.distance = -3.0f
-		    }
+		    .partial_plane = create_partial_plane(
+			(Vec3) {0.0f, 3.0f, 3.0f},
+			(Vec3) {1.0f, 0.0f, 0.0f},
+			(Vec3) {0.0f, 0.0f, 1.0f},
+			-3, -3,
+			3, 3
+		    )
 		},
 		.material = &red_mat
 	    },
+	    // floor
+	    {
+		.kind = GEO_PARTIAL_PLANE,
+		.geometry = {
+		    .partial_plane = create_partial_plane(
+			(Vec3) {0.0f, 0.0f, 0.0f},
+			(Vec3) {1.0f, 0.0f, 0.0f},
+			(Vec3) {0.0f, 1.0f, 0.0f},
+			-3, -3,
+			3, 3
+		    )
+		},
+		
+		.material = &white_mat
+	    },
 	    // ceiling
 	    {
-		.kind = GEO_PLANE,
+		.kind = GEO_PARTIAL_PLANE,
 		.geometry = {
-		    .plane = {
-			.normal = {0.0f, 0.0f, -1.0f},
-			.distance = -6.0f
-		    }
+		    .partial_plane = create_partial_plane(
+			(Vec3) {0.0f, 0.0f, 6.0f},
+			(Vec3) {1.0f, 0.0f, 0.0f},
+			(Vec3) {0.0f, 1.0f, 0.0f},
+			-3, -3,
+			3, 3
+		    )
 		},
 		.material = &white_mat
 	    }
@@ -192,6 +212,8 @@ void render_stuff(ImageBuffer* buffer,
 	.light_count = 1,
 	.lights = &l,
     };
+    sc.object_count = sizeof(sc.objects);
+    
     
     clear_buffer(buffer);
     bool quit = false;
@@ -295,6 +317,16 @@ bool parse_args(int argc, char** argv, Options* options) {
     return true;
 }
 
+void test_samplers() {
+    Sampler s;
+    create_samplers(&s, 1);
+    for (int i = 0; i < 2 * STRATIFIED_RESOLUTION * STRATIFIED_RESOLUTION; i++) {
+	float x, y;
+	sample_unit_square(&s, &x, &y, NULL);
+	printf("%f %f\n", x, y);
+    }
+}
+
 
 int main(int argc, char** argv) {
     Options options = default_options();
@@ -311,5 +343,7 @@ int main(int argc, char** argv) {
 
     if (options.output_file)
 	write_image_file(buf, options.output_file, GAMMA);
+    else
+	write_image_file(buf, "latest.png", GAMMA);
 }
 

@@ -40,3 +40,11 @@ Color vec3_to_color(Vec3 v) {
     return rval;
 }
 
+PartialPlane create_partial_plane(Vec3 origin, Vec3 u, Vec3 v, float umin, float vmin, float umax, float vmax) {
+    return (PartialPlane) {
+	.basis = {u, v, normalized(cross(u, v))},
+	.origin = origin,
+	.min = {umin, vmin},
+	.max = {umax, vmax}
+    };
+}
