@@ -15,6 +15,10 @@ bool intersect_object(Object obj, Ray r, Intersect* it) {
 	did_intersect =
 	    intersect_plane(obj.geometry.plane, r, it);
 	break;
+    case GEO_PARTIAL_PLANE:
+	did_intersect =
+	    intersect_partial_plane(obj.geometry.partial_plane, r, it);
+	break;
     }
     if (did_intersect)
 	it->material = obj.material;
@@ -27,6 +31,7 @@ Color trace_ray(Scene* sc, Ray r, int depth, Sampler* sampler) {
     it.t = INFINITY;
     it.depth = depth;
     it.sampler = sampler;
+    sampler->current_depth = depth;
 
     for (int i = 0; i < sc->object_count; i++) {
 	intersect_object(sc->objects[i], r, &it);

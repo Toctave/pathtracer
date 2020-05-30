@@ -2,10 +2,9 @@
 #include "bsdf.h"
 #include "scene.h"
 #include "debug.h"
+#include "constants.h"
 #include <math.h>
 #include <stdio.h>
-
-#define MAX_DEPTH 3
 
 Color shade(Intersect it, Scene* sc) {
     // @Todo : think about the right shifting amount

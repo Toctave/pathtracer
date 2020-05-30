@@ -8,13 +8,14 @@
 #include <stddef.h> // size_t
 
 struct Light;
-typedef enum { GEO_PLANE, GEO_SPHERE } GeometryKind;
+typedef enum { GEO_PLANE, GEO_PARTIAL_PLANE, GEO_SPHERE } GeometryKind;
 
 typedef struct Object {
     GeometryKind kind;
     union {
 	Sphere sphere;
 	Plane plane;
+	PartialPlane partial_plane;
     } geometry;
     Material* material;
 } Object;

@@ -19,3 +19,7 @@ bool intersects_sphere(Sphere s, Ray r);
 
 bool intersect_plane(Plane p, Ray r, Intersect* intersect);
 bool intersects_plane(Plane p, Ray r);
+
+bool intersect_partial_plane(PartialPlane p, Ray r, Intersect* intersect);
+bool intersects_partial_plane(PartialPlane p, Ray r);
+

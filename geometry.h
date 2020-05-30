@@ -27,6 +27,15 @@ typedef struct Plane {
     float distance;
 } Plane;
 
+typedef struct PartialPlane {
+    Vec3 basis[3]; // u, v, normal
+    Vec3 origin;
+    float min[2];
+    float max[2];
+} PartialPlane;
+
+PartialPlane create_partial_plane(Vec3 origin, Vec3 u, Vec3 v, float umin, float vmin, float umax, float vmax);
+
 float norm2(Vec3 v);
 float norm(Vec3 v);
 void vprint(Vec3 v);

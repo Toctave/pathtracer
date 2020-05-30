@@ -9,7 +9,7 @@ typedef struct Color {
 
 typedef struct PixelData {
     Color color;
-    int samples;
+    float weight_sum;
 } PixelData;
 
 typedef struct ImageBuffer {
@@ -21,7 +21,7 @@ typedef struct ImageBuffer {
 
 ImageBuffer* create_buffer(int width, int height);
 void clear_buffer(ImageBuffer* buffer);
-void add_pixel_sample(ImageBuffer* buffer, int x, int y, Color c);
+void add_pixel_sample(ImageBuffer* buffer, int x, int y, float dx, float dy, Color c);
 bool write_image_file(ImageBuffer* buffer, char* filepath, float gamma);
 void dump_pixel_data(ImageBuffer* buffer, unsigned char* pixels, float gamma);
 void rgb_pixel_value(ImageBuffer* buffer, int i,
