@@ -214,13 +214,12 @@ void render_stuff(ImageBuffer* buffer,
     };
     sc.object_count = sizeof(sc.objects);
     
-    
     clear_buffer(buffer);
     bool quit = false;
     long int samples = 0;
     long int t0 = SDL_GetTicks();
     int n_cores = get_nprocs();
-    printf("Detected %d cores, rendering with %d threads.\n", n_cores, n_cores);
+    printf("Detected %1$d cores, rendering with %1$d threads.\n", n_cores);
     Sampler* samplers = malloc(sizeof(Sampler) * buffer->width * buffer->height);
     create_samplers(samplers, buffer->width * buffer->height);
     while (!quit) {
@@ -344,6 +343,6 @@ int main(int argc, char** argv) {
     if (options.output_file)
 	write_image_file(buf, options.output_file, GAMMA);
     else
-	write_image_file(buf, "latest.png", GAMMA);
+	write_image_file(buf, "output/latest.png", GAMMA);
 }
 

@@ -3,19 +3,22 @@
 LIBS = sdl2
 BINARY_NAME = pathtracer
 
+BINDIR = bin
 OBJDIR = obj
-SRCS = $(wildcard *.c) $(wildcard pcg/*.c)
-OBJS = $(patsubst %.c, $(OBJDIR)/%.o, $(SRCS))
+SRCDIR = src
+SRCS = $(wildcard $(SRCDIR)/*.c) $(wildcard $(SRCDIR)/pcg/*.c)
+OBJS = $(patsubst $(SRCDIR)/%.c, $(OBJDIR)/%.o, $(SRCS))
 
 LDFLAGS = $(shell pkg-config --libs $(LIBS)) -lm -pthread
 CFLAGS = $(shell pkg-config --libs $(LIBS)) -pthread -Iinclude -O3
 
-$(BINARY_NAME) : $(OBJS)
+$(BINDIR)/$(BINARY_NAME) : $(OBJS)
+> @ mkdir -p $(BINDIR)
 > @ $(CC) $(OBJS) -o $@ $(LDFLAGS)
 
-$(OBJDIR)/%.o : %.c
+$(OBJDIR)/%.o : src/%.c
 > @ mkdir -p $(OBJDIR) $(OBJDIR)/pcg
 > @ $(CC) $(CFLAGS) -c $< -o $@
 
-run : $(BINARY_NAME)
-> ./$(BINARY_NAME)
+clean:
+> rm -rf $(OBJDIR)
