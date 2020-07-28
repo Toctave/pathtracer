@@ -5,6 +5,7 @@
 #include "shading.h"
 #include "camera.h"
 #include "multithreading.h"
+#include "triangle_mesh.h"
 #include <stdlib.h>
 #include <sys/sysinfo.h>
 
@@ -14,7 +15,7 @@ void handle_events(bool* quit) {
     SDL_Event event;
     while (SDL_PollEvent(&event)) {
 	if (event.type == SDL_QUIT ||
-	    (event.type == SDL_KEYDOWN) && (event.key.keysym.sym == SDLK_ESCAPE))
+	    ((event.type == SDL_KEYDOWN) && (event.key.keysym.sym == SDLK_ESCAPE)))
 	    *quit = 1;
     }
 }
@@ -38,7 +39,6 @@ void render_stuff(ImageBuffer* buffer,
     Color red = {1.0f, .0f, .0f};
     Color green = {0.0f, 1.0f, .0f};
     Color yellow = {1.0f, 1.0f, .0f};
-    Color emissive_blue = {25.0f, 25.0f, 50.0f};
 
     BSDF lambert = {
 	.f = lambert_bsdf,
@@ -328,6 +328,21 @@ void test_samplers() {
 
 
 int main(int argc, char** argv) {
+    TriangleMesh suzanne;
+    read_obj_file(&suzanne, "res/suzanne.obj");
+    build_bvh(&suzanne);
+
+    for (int i = 0; i < suzanne.triangle_count; i++) {
+	printf("Triangle %d:\n", i);
+	Triangle* tri = &suzanne.triangles[i];
+	for (int j = 0; j < 3; j++) {
+	    printf("  v %f %f %f\t", tri->vertices[j].x, tri->vertices[j].y, tri->vertices[j].z);
+	    printf("  n %f %f %f\n", tri->vertex_normals[j].x, tri->vertex_normals[j].y, tri->vertex_normals[j].z);
+	}
+    }
+    
+    return 0;
+    
     Options options = default_options();
     if (!parse_args(argc, argv, &options)) {
 	return -1;

@@ -37,4 +37,4 @@ Color isotropic_emission(void* params, Vec3 out) {
     else
 	return cscale(*col, .5f / M_PI);
 };
-    
+

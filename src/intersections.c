@@ -88,6 +88,21 @@ bool intersect_partial_plane(PartialPlane p, Ray r, Intersect* intersect) {
 }
 
 bool intersects_partial_plane(PartialPlane p, Ray r) {
+    float d = dot(p.basis[2], r.d);
+    if (d < -EPSILON || d > EPSILON) {
+	float t = dot(vsub(p.origin, r.o), p.basis[2]) / d;
+	if (t > EPSILON) {
+	    Vec3 hit_point = along_ray(r, t);
+	    Vec3 origin_to_hit = vsub(hit_point, p.origin);
+	    float u = dot(origin_to_hit, p.basis[0]);
+	    float v = dot(origin_to_hit, p.basis[1]);
 
+	    if (u > p.min[0] && v > p.min[1] &&
+		u < p.max[0] && v < p.max[1]) {
+		return true;
+	    }
+	}
+    }
+    return false;
 }
 

@@ -33,3 +33,6 @@ Color perfect_reflection_bsdf(void* params, Vec3 in, Vec3 out);
 
 // Emission functions
 Color isotropic_emission(void* params, Vec3 out);
+
+// Combine functions
+BSDF mix_bsdf(BSDF* bsdf1, BSDF* bsdf2, float factor);

@@ -19,6 +19,8 @@ bool intersect_object(Object obj, Ray r, Intersect* it) {
 	did_intersect =
 	    intersect_partial_plane(obj.geometry.partial_plane, r, it);
 	break;
+    default:
+	did_intersect = false;
     }
     if (did_intersect)
 	it->material = obj.material;

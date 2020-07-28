@@ -23,3 +23,5 @@ bool intersects_plane(Plane p, Ray r);
 bool intersect_partial_plane(PartialPlane p, Ray r, Intersect* intersect);
 bool intersects_partial_plane(PartialPlane p, Ray r);
 
+bool intersect_triangle(Triangle t, Ray r, Intersect* intersect);
+bool intersects_triangle(Triangle t, Ray r);

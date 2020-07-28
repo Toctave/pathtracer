@@ -34,6 +34,11 @@ typedef struct PartialPlane {
     float max[2];
 } PartialPlane;
 
+typedef struct Triangle {
+    Vec3 vertices[3];
+    Vec3 vertex_normals[3];
+} Triangle;
+
 PartialPlane create_partial_plane(Vec3 origin, Vec3 u, Vec3 v, float umin, float vmin, float umax, float vmax);
 
 float norm2(Vec3 v);

@@ -41,7 +41,8 @@ uint32_t sample_int(Sampler* sampler) {
 float sample_float(Sampler* sampler) {
     uint32_t a = sample_int(sampler);
     a = (0x7f << 23) | (a & 0x007fffff);
-    return *((float*) &a) - 1.0f;
+    float* b = (float*) &a;
+    return *b - 1.0f;
 }
 
 void sample_unit_square(Sampler* sampler, float* x, float* y, float* pdf) {
