@@ -1,6 +1,7 @@
 #pragma once
 #include "geometry.h"
 #include "image_buffer.h"
+#include "triangle_mesh.h"
 
 typedef struct Intersect {
     int depth;
@@ -25,3 +26,6 @@ bool intersects_partial_plane(PartialPlane p, Ray r);
 
 bool intersect_triangle(Triangle t, Ray r, Intersect* intersect);
 bool intersects_triangle(Triangle t, Ray r);
+
+bool intersect_triangle_mesh(TriangleMesh mesh, Ray r, Intersect* intersect);
+bool intersects_triangle_mesh(TriangleMesh mesh, Ray r);

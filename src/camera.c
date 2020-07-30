@@ -1,4 +1,5 @@
 #include "camera.h"
+#include "globals.h"
 #include <math.h>
 #include <stdio.h>
 
@@ -44,7 +45,7 @@ PerspectiveCamera create_perspective_camera(Vec3 pos, Vec3 target, float ratio, 
 	);
     cam.basis[1] = cross(cam.basis[2], cam.basis[0]);
 
-    cam.xscale = atanf(fov * M_PI / 360.0f);
+    cam.xscale = atanf(fov * PI / 360.0f);
     cam.yscale = cam.xscale / ratio;
 
     return cam;

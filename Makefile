@@ -10,7 +10,7 @@ SRCS = $(wildcard $(SRCDIR)/*.c) $(wildcard $(SRCDIR)/pcg/*.c)
 OBJS = $(patsubst $(SRCDIR)/%.c, $(OBJDIR)/%.o, $(SRCS))
 
 LDFLAGS = $(shell pkg-config --libs $(LIBS)) -lm -pthread
-CFLAGS = $(shell pkg-config --libs $(LIBS)) -pthread -Iinclude -Wall -O3
+CFLAGS = $(shell pkg-config --libs $(LIBS)) -pthread -Iinclude -Wall -std=c99 -O3
 
 $(BINDIR)/$(BINARY_NAME) : $(OBJS)
 > @ mkdir -p $(BINDIR)

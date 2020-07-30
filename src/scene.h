@@ -8,7 +8,7 @@
 #include <stddef.h> // size_t
 
 struct Light;
-typedef enum { GEO_PLANE, GEO_PARTIAL_PLANE, GEO_SPHERE } GeometryKind;
+typedef enum { GEO_PLANE, GEO_PARTIAL_PLANE, GEO_SPHERE, GEO_TRIANGLE, GEO_TRIANGLE_MESH } GeometryKind;
 
 typedef struct Object {
     GeometryKind kind;
@@ -16,6 +16,8 @@ typedef struct Object {
 	Sphere sphere;
 	Plane plane;
 	PartialPlane partial_plane;
+	Triangle triangle;
+	TriangleMesh triangle_mesh;
     } geometry;
     Material* material;
 } Object;

@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <math.h>
 
 bool read_obj_file(TriangleMesh* mesh, const char* filename) {
     FILE* file = fopen(filename, "r");
@@ -53,8 +54,8 @@ bool read_obj_file(TriangleMesh* mesh, const char* filename) {
 		return false;
 	    } else {
 		for (int i = 0; i < 3; i++) {
-		    mesh->triangles[fi].vertices[i] = vertices[vis[i]];
-		    mesh->triangles[fi].vertex_normals[i] = normals[vnis[i]];
+		    mesh->triangles[fi].vertices[i] = vertices[vis[i] - 1];
+		    mesh->triangles[fi].vertex_normals[i] = normals[vnis[i] - 1];
 		}
 	    }
 	    fi++;
@@ -68,7 +69,8 @@ bool read_obj_file(TriangleMesh* mesh, const char* filename) {
 	}
 	line_number++;
     }
-    mesh->bvh_root = NULL;
+    printf("Building BVH for mesh '%s'...\n", filename);
+    build_bvh(mesh);
     return true;
 }
 
@@ -111,26 +113,131 @@ int compare_by_z(const void* lhs, const void* rhs) {
     }
 }
 
-void build_bvh(TriangleMesh* mesh) {
-    Vec3 centroids[mesh->triangle_count];
+void build_bvh_node(BVHNode* node, TriangleMesh* mesh, bool* indices,
+		    Centroid* centroids_by_x, Centroid* centroids_by_y, Centroid* centroids_by_z,
+		    int split_axis) {
+    node->mesh = mesh;
+    node->indices = indices;
+
+    node->vmin.x = INFINITY;
+    node->vmin.y = INFINITY;
+    node->vmin.z = INFINITY;
+
+    node->vmax.x = -INFINITY;
+    node->vmax.y = -INFINITY;
+    node->vmax.z = -INFINITY;
+
+    Centroid* centroids_by_split_axis;
+    switch (split_axis) {
+    case 0:
+	centroids_by_split_axis = centroids_by_x;
+	break;
+    case 1:
+	centroids_by_split_axis = centroids_by_y;
+	break;
+    case 2:
+	centroids_by_split_axis = centroids_by_z;
+	break;
+    }
+
+    int triangle_count = 0;
+
     for (int i = 0; i < mesh->triangle_count; i++) {
-	centroids[i] = vadd(
+	int idx = centroids_by_split_axis[i].idx;
+	if (indices[idx]) {
+	    for (int j = 0; j < 3; j++) {
+		if (mesh->triangles[idx].vertices[j].x < node->vmin.x) {
+		    node->vmin.x = mesh->triangles[idx].vertices[j].x;
+		}
+		if (mesh->triangles[idx].vertices[j].x > node->vmax.x) {
+		    node->vmax.x = mesh->triangles[idx].vertices[j].x;
+		}
+
+		if (mesh->triangles[idx].vertices[j].y < node->vmin.y) {
+		    node->vmin.y = mesh->triangles[idx].vertices[j].y;
+		}
+		if (mesh->triangles[idx].vertices[j].y > node->vmax.y) {
+		    node->vmax.y = mesh->triangles[idx].vertices[j].y;
+		}
+
+		if (mesh->triangles[idx].vertices[j].z < node->vmin.z) {
+		    node->vmin.z = mesh->triangles[idx].vertices[j].z;
+		}
+		if (mesh->triangles[idx].vertices[j].z > node->vmax.z) {
+		    node->vmax.z = mesh->triangles[idx].vertices[j].z;
+		}
+	    }
+	    triangle_count++;
+	}
+    }
+
+    /* printf("vmin %.3f %.3f %.3f\n", node->vmin.x, node->vmin.y, node->vmin.z); */
+    /* printf("vmax %.3f %.3f %.3f\n\n", node->vmax.x, node->vmax.y, node->vmax.z); */
+
+    if (triangle_count > 10) {
+	bool* l_indices = malloc(sizeof(bool) * mesh->triangle_count);
+	bool* r_indices = malloc(sizeof(bool) * mesh->triangle_count);
+
+	int triangles_seen = 0;
+	for (int i = 0; i < mesh->triangle_count; i++) {
+	    int idx = centroids_by_split_axis[i].idx;
+	    l_indices[idx] = false;
+	    r_indices[idx] = false;
+	    if (indices[idx]) {
+		if (triangles_seen < triangle_count / 2) {
+		    l_indices[idx] = true;
+		} else {
+		    r_indices[idx] = true;
+		}
+		triangles_seen++;
+	    }
+	}
+
+
+	node->left = malloc(sizeof(BVHNode));
+	node->right = malloc(sizeof(BVHNode));
+	build_bvh_node(node->left, mesh, l_indices,
+		       centroids_by_x, centroids_by_y, centroids_by_z,
+		       (split_axis + 1) % 3);
+	build_bvh_node(node->right, mesh, r_indices,
+			   centroids_by_x, centroids_by_y, centroids_by_z,
+			   (split_axis + 1) % 3);
+    } else {
+	node->left = NULL;
+	node->right = NULL;
+    }
+}
+
+void build_bvh(TriangleMesh* mesh) {
+    Centroid centroids[mesh->triangle_count];
+    bool* indices = malloc(sizeof(bool) * mesh->triangle_count);
+    for (int i = 0; i < mesh->triangle_count; i++) {
+	indices[i] = true;
+	centroids[i].idx = i;
+	centroids[i].p = vadd(
 	    vadd(
 		mesh->triangles[i].vertices[0],
 		mesh->triangles[i].vertices[1]
 		),
 	    mesh->triangles[i].vertices[2]);
-	centroids[i] = vdiv(centroids[i], 3.0f);
+	centroids[i].p = vdiv(centroids[i].p, 3.0f);
     }
-    Vec3* centroids_by_x = malloc(sizeof(Vec3) * mesh->triangle_count);
-    Vec3* centroids_by_y = malloc(sizeof(Vec3) * mesh->triangle_count);
-    Vec3* centroids_by_z = malloc(sizeof(Vec3) * mesh->triangle_count);
+    Centroid* centroids_by_x = malloc(sizeof(Centroid) * mesh->triangle_count);
+    Centroid* centroids_by_y = malloc(sizeof(Centroid) * mesh->triangle_count);
+    Centroid* centroids_by_z = malloc(sizeof(Centroid) * mesh->triangle_count);
 
-    qsort(centroids_by_x, mesh->triangle_count, sizeof(Vec3), &compare_by_x);
-    qsort(centroids_by_y, mesh->triangle_count, sizeof(Vec3), &compare_by_y);
-    qsort(centroids_by_z, mesh->triangle_count, sizeof(Vec3), &compare_by_z);
+    memcpy(centroids_by_x, centroids, sizeof(Centroid) * mesh->triangle_count);
+    memcpy(centroids_by_y, centroids, sizeof(Centroid) * mesh->triangle_count);
+    memcpy(centroids_by_z, centroids, sizeof(Centroid) * mesh->triangle_count);
 
-    /* @TODO : build BVH nodes */
+    qsort(centroids_by_x, mesh->triangle_count, sizeof(Centroid), &compare_by_x);
+    qsort(centroids_by_y, mesh->triangle_count, sizeof(Centroid), &compare_by_y);
+    qsort(centroids_by_z, mesh->triangle_count, sizeof(Centroid), &compare_by_z);
+
+    mesh->bvh_root = malloc(sizeof(BVHNode));
+    build_bvh_node(mesh->bvh_root, mesh, indices,
+    		   centroids_by_x, centroids_by_y, centroids_by_z,
+    		   0);
 
     free(centroids_by_x);
     free(centroids_by_y);

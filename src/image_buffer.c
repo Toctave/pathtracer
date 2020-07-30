@@ -1,6 +1,7 @@
 #include "image_buffer.h"
 #include <stdlib.h>
 #include <math.h>
+#include "globals.h"
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image_write.h"
 
@@ -25,7 +26,7 @@ void clear_buffer(ImageBuffer* buffer) {
 
 float sinc(float x) {
     if (fabs(x) < 1e-5) return 1.0f;
-    return sinf(M_PI * x) / (M_PI * x);
+    return sinf(PI * x) / (PI * x);
 }
 
 float windowed_sinc(float x, float tau, float radius) {
@@ -39,7 +40,7 @@ float falloff(float dx, float dy, float extent) {
     return windowed_sinc(dx, tau, extent) * windowed_sinc(dy, tau, extent);
 //    return fabs(dx) < .5f && fabs(dy) < .5f ? 1.0f : 0.0f;
 //    float d = sqrtf(dx * dx + dy * dy);
-//    return d < 1.0f ? (1.0f - d) * 3.0f / M_PI : 0.0f;
+//    return d < 1.0f ? (1.0f - d) * 3.0f / PI : 0.0f;
 //    static const float alpha = 2.0f;
     //return expf(- (dx * dx + dy * dy) * alpha) - expf(-alpha * extent * extent);
 //    return sinf(d) / d;

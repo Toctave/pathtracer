@@ -35,7 +35,7 @@ void render_stuff(ImageBuffer* buffer,
 		  int max_seconds,
 		  bool uniform_sampling) {
     Color white = {1.0f, 1.0f, 1.0f};
-    Color cream = cscale((Color){1.0f, .9f, .8f}, 20.0f);
+    Color cream = cscale((Color){1.0f, .9f, .8f}, 80.0f);
     Color red = {1.0f, .0f, .0f};
     Color green = {0.0f, 1.0f, .0f};
     Color yellow = {1.0f, 1.0f, .0f};
@@ -101,8 +101,12 @@ void render_stuff(ImageBuffer* buffer,
 	}
     };
 
+    TriangleMesh suzanne;
+    read_obj_file(&suzanne, "res/suzanne.obj");
+
     Scene sc = {
 	.objects = (Object[]) {
+	    // light
 	    {
 		.kind = GEO_PARTIAL_PLANE,
 		.geometry = {
@@ -110,31 +114,38 @@ void render_stuff(ImageBuffer* buffer,
 			(Vec3) {0.0f, 0.0f, 5.95f},
 			(Vec3) {1.0f, 0.0f, 0.0f},
 			(Vec3) {0.0f, 1.0f, 0.0f},
-			-2, -2,
-			2, 2
+			-1, -1,
+			1, 1
 		    )
 		},
 		.material = &emissive_mat,
 	    },
+	    /* { */
+	    /* 	.kind = GEO_SPHERE, */
+	    /* 	.geometry = { */
+	    /* 	    .sphere = { */
+	    /* 		.center = {1.3f, -.5f, 1.5f}, */
+	    /* 		.radius = 1.5f, */
+	    /* 	    } */
+	    /* 	}, */
+	    /* 	.material = &yellow_mat */
+	    /* }, */
 	    {
-		.kind = GEO_SPHERE,
+		.kind = GEO_TRIANGLE_MESH,
 		.geometry = {
-		    .sphere = {
-			.center = {1.3f, -.5f, 1.5f},
-			.radius = 1.5f,
-		    }
+		    .triangle_mesh = suzanne
 		},
 		.material = &yellow_mat
 	    },
 	    {
-		.kind = GEO_SPHERE,
-		.geometry = {
-		    .sphere = {
-			.center = {.5f, 1.0f, 4.0f},
-			.radius = 1.0f,
-		    }
-		},
-		.material = &mirror_mat
+	    	.kind = GEO_SPHERE,
+	    	.geometry = {
+	    	    .sphere = {
+	    		.center = {1.2f, 1.5f, 1.1f},
+	    		.radius = 1.1f,
+	    	    }
+	    	},
+	    	.material = &mirror_mat
 	    },
 	    // WALLS
 	    // right
@@ -328,20 +339,20 @@ void test_samplers() {
 
 
 int main(int argc, char** argv) {
-    TriangleMesh suzanne;
-    read_obj_file(&suzanne, "res/suzanne.obj");
-    build_bvh(&suzanne);
+    /* TriangleMesh suzanne; */
+    /* read_obj_file(&suzanne, "res/suzanne.obj"); */
+    /* build_bvh(&suzanne); */
 
-    for (int i = 0; i < suzanne.triangle_count; i++) {
-	printf("Triangle %d:\n", i);
-	Triangle* tri = &suzanne.triangles[i];
-	for (int j = 0; j < 3; j++) {
-	    printf("  v %f %f %f\t", tri->vertices[j].x, tri->vertices[j].y, tri->vertices[j].z);
-	    printf("  n %f %f %f\n", tri->vertex_normals[j].x, tri->vertex_normals[j].y, tri->vertex_normals[j].z);
-	}
-    }
+    /* for (int i = 0; i < suzanne.triangle_count; i++) { */
+    /* 	printf("Triangle %d:\n", i); */
+    /* 	Triangle* tri = &suzanne.triangles[i]; */
+    /* 	for (int j = 0; j < 3; j++) { */
+    /* 	    printf("  v %6.3f %6.3f %6.3f\t", tri->vertices[j].x, tri->vertices[j].y, tri->vertices[j].z); */
+    /* 	    printf("  n %6.3f %6.3f %6.3f\n", tri->vertex_normals[j].x, tri->vertex_normals[j].y, tri->vertex_normals[j].z); */
+    /* 	} */
+    /* } */
     
-    return 0;
+    /* return 0; */
     
     Options options = default_options();
     if (!parse_args(argc, argv, &options)) {

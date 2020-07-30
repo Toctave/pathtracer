@@ -19,6 +19,14 @@ bool intersect_object(Object obj, Ray r, Intersect* it) {
 	did_intersect =
 	    intersect_partial_plane(obj.geometry.partial_plane, r, it);
 	break;
+    case GEO_TRIANGLE:
+	did_intersect =
+	    intersect_triangle(obj.geometry.triangle, r, it);
+	break;
+    case GEO_TRIANGLE_MESH:
+	did_intersect =
+	    intersect_triangle_mesh(obj.geometry.triangle_mesh, r, it);
+	break;
     default:
 	did_intersect = false;
     }

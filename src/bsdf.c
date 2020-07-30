@@ -1,4 +1,5 @@
 #include "bsdf.h"
+#include "globals.h"
 #include <math.h>
 #include <stddef.h>
 
@@ -21,7 +22,7 @@ Color lambert_bsdf(void* params, Vec3 in, Vec3 out) {
     if (out.z < 0.0f || in.z < 0.0f)
 	return (Color) {0.0f};
     else
-	return cscale(*col, 1.0f / M_PI);
+	return cscale(*col, 1.0f / PI);
 }
 
 Color perfect_reflection_bsdf(void* params, Vec3 in, Vec3 out) {
@@ -35,6 +36,6 @@ Color isotropic_emission(void* params, Vec3 out) {
     if (out.z < 0.0f)
 	return (Color) {0.0f};
     else
-	return cscale(*col, .5f / M_PI);
+	return cscale(*col, .5f / PI);
 };
 

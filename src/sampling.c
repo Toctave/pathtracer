@@ -1,4 +1,5 @@
 #include "sampling.h"
+#include "globals.h"
 #include <math.h>
 #include <stdlib.h>
 
@@ -63,24 +64,24 @@ void sample_unit_square(Sampler* sampler, float* x, float* y, float* pdf) {
 void sample_unit_disc(Sampler* sampler, float* x, float* y, float* pdf) {
     float u, v;
     sample_unit_square(sampler, &u, &v, NULL);
-    float theta = 2 * M_PI * u;
+    float theta = 2 * PI * u;
     float r = sqrtf(v);
 
     *x = r * cosf(theta);
     *y = r * sinf(theta);
     if (pdf)
-	*pdf = 1.0f / M_PI;
+	*pdf = 1.0f / PI;
 }
 
 Vec3 sample_uniform_hemisphere(Sampler* sampler, float* pdf) {
     float cosTheta, v;
     sample_unit_square(sampler, &cosTheta, &v, NULL);
     float sinTheta = sqrtf(1 - cosTheta * cosTheta);
-    float cosPhi = cosf(2 * M_PI * v);
-    float sinPhi = sinf(2 * M_PI * v);
+    float cosPhi = cosf(2 * PI * v);
+    float sinPhi = sinf(2 * PI * v);
 
     if (pdf)
-	*pdf = .5f / M_PI;
+	*pdf = .5f / PI;
     return (Vec3) {
 	sinTheta * cosPhi,
 	sinTheta * sinPhi,
@@ -95,7 +96,7 @@ Vec3 sample_cosine_weighted_hemisphere(Sampler* sampler, float* pdf) {
     float z2 = 1.0f - sample.x * sample.x - sample.y * sample.y;
     sample.z = sqrtf(z2 > 0.0f ? z2 : 0.0f);
     if (pdf)
-	*pdf = sample.z / M_PI; // p(theta, phi) = cos(theta) / pi
+	*pdf = sample.z / PI; // p(theta, phi) = cos(theta) / pi
     return sample;
 }
 
