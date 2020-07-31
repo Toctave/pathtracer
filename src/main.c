@@ -102,7 +102,7 @@ void render_stuff(ImageBuffer* buffer,
     };
 
     TriangleMesh suzanne;
-    read_obj_file(&suzanne, "res/suzanne.obj");
+    read_obj_file(&suzanne, "res/suzanne_250k.obj");
 
     Scene sc = {
 	.objects = (Object[]) {
@@ -340,8 +340,7 @@ void test_samplers() {
 
 int main(int argc, char** argv) {
     /* TriangleMesh suzanne; */
-    /* read_obj_file(&suzanne, "res/suzanne.obj"); */
-    /* build_bvh(&suzanne); */
+    /* read_obj_file(&suzanne, "res/suzanne_250k.obj"); */
 
     /* for (int i = 0; i < suzanne.triangle_count; i++) { */
     /* 	printf("Triangle %d:\n", i); */

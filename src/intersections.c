@@ -223,11 +223,10 @@ bool intersect_bvh(BVHNode* node, Ray r, Intersect* intersect) {
     
     if (!node->left) {
 	bool did_intersect = false;
-	for (int i = 0; i < node->mesh->triangle_count; i++) {
-	    if (node->indices[i]) {
-		if (intersect_triangle(node->mesh->triangles[i], r, intersect))
-		    did_intersect = true;
-	    }
+	for (LLNode* index_node = node->indices_head; index_node; index_node = index_node->next) {
+	    int* i = (int*) index_node->data;
+	    if (intersect_triangle(node->mesh->triangles[*i], r, intersect))
+		did_intersect = true;
 	}
 	return did_intersect;
     }
@@ -246,11 +245,10 @@ bool intersects_bvh(BVHNode* node, Ray r) {
 	return false;
     
     if (!node->left) {
-	for (int i = 0; i < node->mesh->triangle_count; i++) {
-	    if (node->indices[i]) {
-		if (intersects_triangle(node->mesh->triangles[i], r))
-		    return true;
-	    }
+	for (LLNode* index_node = node->indices_head; index_node; index_node = index_node->next) {
+	    int* i = (int*) index_node->data;
+	    if (intersects_triangle(node->mesh->triangles[*i], r))
+		return true;
 	}
 	return false;
     }

@@ -24,8 +24,8 @@ bool read_obj_file(TriangleMesh* mesh, const char* filename) {
 	}
     }
 
-    Vec3 vertices[vertex_count];
-    Vec3 normals[normal_count];
+    Vec3* vertices = malloc(sizeof(Vec3) * vertex_count);
+    Vec3* normals = malloc(sizeof(Vec3) * normal_count);
     mesh->triangles = malloc(sizeof(Triangle) * mesh->triangle_count);
 
     fseek(file, 0, SEEK_SET);
@@ -69,6 +69,10 @@ bool read_obj_file(TriangleMesh* mesh, const char* filename) {
 	}
 	line_number++;
     }
+
+    free(vertices);
+    free(normals);
+    
     printf("Building BVH for mesh '%s'...\n", filename);
     build_bvh(mesh);
     return true;
@@ -115,9 +119,9 @@ int compare_by_z(const void* lhs, const void* rhs) {
 
 void build_bvh_node(BVHNode* node, TriangleMesh* mesh, bool* indices,
 		    Centroid* centroids_by_x, Centroid* centroids_by_y, Centroid* centroids_by_z,
-		    int split_axis) {
+		    unsigned int depth) {
+    static size_t triangles_processed = 0;
     node->mesh = mesh;
-    node->indices = indices;
 
     node->vmin.x = INFINITY;
     node->vmin.y = INFINITY;
@@ -127,7 +131,8 @@ void build_bvh_node(BVHNode* node, TriangleMesh* mesh, bool* indices,
     node->vmax.y = -INFINITY;
     node->vmax.z = -INFINITY;
 
-    Centroid* centroids_by_split_axis;
+    Centroid* centroids_by_split_axis = NULL;
+    unsigned int split_axis = depth % 3;
     switch (split_axis) {
     case 0:
 	centroids_by_split_axis = centroids_by_x;
@@ -142,7 +147,7 @@ void build_bvh_node(BVHNode* node, TriangleMesh* mesh, bool* indices,
 
     int triangle_count = 0;
 
-    for (int i = 0; i < mesh->triangle_count; i++) {
+    for (size_t i = 0; i < mesh->triangle_count; i++) {
 	int idx = centroids_by_split_axis[i].idx;
 	if (indices[idx]) {
 	    for (int j = 0; j < 3; j++) {
@@ -171,16 +176,13 @@ void build_bvh_node(BVHNode* node, TriangleMesh* mesh, bool* indices,
 	}
     }
 
-    /* printf("vmin %.3f %.3f %.3f\n", node->vmin.x, node->vmin.y, node->vmin.z); */
-    /* printf("vmax %.3f %.3f %.3f\n\n", node->vmax.x, node->vmax.y, node->vmax.z); */
-
-    if (triangle_count > 10) {
+    if (triangle_count > 10 && depth < 20) {
 	bool* l_indices = malloc(sizeof(bool) * mesh->triangle_count);
 	bool* r_indices = malloc(sizeof(bool) * mesh->triangle_count);
 
 	int triangles_seen = 0;
-	for (int i = 0; i < mesh->triangle_count; i++) {
-	    int idx = centroids_by_split_axis[i].idx;
+	for (size_t i = 0; i < mesh->triangle_count; i++) {
+	    size_t idx = centroids_by_split_axis[i].idx;
 	    l_indices[idx] = false;
 	    r_indices[idx] = false;
 	    if (indices[idx]) {
@@ -193,25 +195,48 @@ void build_bvh_node(BVHNode* node, TriangleMesh* mesh, bool* indices,
 	    }
 	}
 
-
 	node->left = malloc(sizeof(BVHNode));
-	node->right = malloc(sizeof(BVHNode));
 	build_bvh_node(node->left, mesh, l_indices,
 		       centroids_by_x, centroids_by_y, centroids_by_z,
-		       (split_axis + 1) % 3);
+		       depth + 1);
+	node->right = malloc(sizeof(BVHNode));
 	build_bvh_node(node->right, mesh, r_indices,
 			   centroids_by_x, centroids_by_y, centroids_by_z,
-			   (split_axis + 1) % 3);
+			   depth + 1);
+	free(r_indices);
+	free(l_indices);
+
+	node->indices_head = NULL;
     } else {
 	node->left = NULL;
 	node->right = NULL;
+
+	LLNode* last = NULL;
+	node->indices_head = NULL;
+	for (size_t i = 0; i < mesh->triangle_count; i++) {
+	    if (indices[i]) {
+		LLNode* new_node = malloc(sizeof(LLNode));
+		new_node->data = malloc(sizeof(size_t));
+		size_t* new_node_index = new_node->data;
+		*new_node_index = i;
+		new_node->next = NULL;
+		if (node->indices_head) {
+		    last->next = new_node;
+		} else {
+		    node->indices_head = new_node;
+		}
+		last = new_node;
+		triangles_processed++;
+	    }
+	}
+	/* printf("%zu triangles processed\n", triangles_processed); */
     }
 }
 
 void build_bvh(TriangleMesh* mesh) {
-    Centroid centroids[mesh->triangle_count];
+    Centroid* centroids = malloc(sizeof(Centroid) * mesh->triangle_count);
     bool* indices = malloc(sizeof(bool) * mesh->triangle_count);
-    for (int i = 0; i < mesh->triangle_count; i++) {
+    for (size_t i = 0; i < mesh->triangle_count; i++) {
 	indices[i] = true;
 	centroids[i].idx = i;
 	centroids[i].p = vadd(
@@ -242,4 +267,7 @@ void build_bvh(TriangleMesh* mesh) {
     free(centroids_by_x);
     free(centroids_by_y);
     free(centroids_by_z);
+    
+    free(centroids);
+    free(indices);
 }
