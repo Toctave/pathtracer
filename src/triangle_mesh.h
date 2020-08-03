@@ -6,17 +6,12 @@
 
 struct TriangleMesh;
 
-typedef struct LLNode {
-    void* data;
-    struct LLNode* next;
-} LLNode;
-
 typedef struct BVHNode {
     Vec3 vmin;
     Vec3 vmax;
-    struct TriangleMesh* mesh;
 
-    LLNode* indices_head;
+    Triangle* triangles;
+    int triangle_count;
     struct BVHNode* left;
     struct BVHNode* right;
 } BVHNode;

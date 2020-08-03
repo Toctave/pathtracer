@@ -17,7 +17,7 @@ Vec3 perfect_reflection_sampler(void* params, Sampler* sampler, Vec3 out, float*
 }
 
 Vec3 perfect_refraction_sampler(void* params, Sampler* sampler, Vec3 out, float* pdf) {
-    
+    return (Vec3) {}; // @TODO(octave)
 }
 
 Color lambert_bsdf(void* params, Vec3 in, Vec3 out) {

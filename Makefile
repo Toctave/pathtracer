@@ -3,6 +3,7 @@
 LIBS = sdl2
 BINARY_NAME = pathtracer
 
+CC = gcc
 BINDIR = bin
 OBJDIR = obj
 SRCDIR = src

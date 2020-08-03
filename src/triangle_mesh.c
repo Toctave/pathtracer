@@ -1,4 +1,5 @@
 #include "triangle_mesh.h"
+#include "debug.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -7,6 +8,11 @@
 
 bool read_obj_file(TriangleMesh* mesh, const char* filename) {
     FILE* file = fopen(filename, "r");
+
+    if (!file) {
+	fprintf(stderr, "Could not open file '%s'\n", filename);
+	return false;
+    }
 
     char line_buffer[256];
 
@@ -119,10 +125,7 @@ int compare_by_z(const void* lhs, const void* rhs) {
 
 void build_bvh_node(BVHNode* node, TriangleMesh* mesh, bool* indices,
 		    Centroid* centroids_by_x, Centroid* centroids_by_y, Centroid* centroids_by_z,
-		    unsigned int depth) {
-    static size_t triangles_processed = 0;
-    node->mesh = mesh;
-
+		    unsigned int depth, Triangle** new_triangles) {
     node->vmin.x = INFINITY;
     node->vmin.y = INFINITY;
     node->vmin.z = INFINITY;
@@ -198,38 +201,26 @@ void build_bvh_node(BVHNode* node, TriangleMesh* mesh, bool* indices,
 	node->left = malloc(sizeof(BVHNode));
 	build_bvh_node(node->left, mesh, l_indices,
 		       centroids_by_x, centroids_by_y, centroids_by_z,
-		       depth + 1);
+		       depth + 1, new_triangles);
 	node->right = malloc(sizeof(BVHNode));
 	build_bvh_node(node->right, mesh, r_indices,
 			   centroids_by_x, centroids_by_y, centroids_by_z,
-			   depth + 1);
+		       depth + 1, new_triangles);
 	free(r_indices);
 	free(l_indices);
-
-	node->indices_head = NULL;
     } else {
 	node->left = NULL;
 	node->right = NULL;
 
-	LLNode* last = NULL;
-	node->indices_head = NULL;
+	node->triangles = *new_triangles;
+	node->triangle_count = 0;
 	for (size_t i = 0; i < mesh->triangle_count; i++) {
 	    if (indices[i]) {
-		LLNode* new_node = malloc(sizeof(LLNode));
-		new_node->data = malloc(sizeof(size_t));
-		size_t* new_node_index = new_node->data;
-		*new_node_index = i;
-		new_node->next = NULL;
-		if (node->indices_head) {
-		    last->next = new_node;
-		} else {
-		    node->indices_head = new_node;
-		}
-		last = new_node;
-		triangles_processed++;
+		node->triangles[node->triangle_count++] = mesh->triangles[i];
 	    }
 	}
-	/* printf("%zu triangles processed\n", triangles_processed); */
+	*new_triangles += node->triangle_count;
+	/* printf("%zu triangles processed\r", triangles_processed); */
     }
 }
 
@@ -259,10 +250,15 @@ void build_bvh(TriangleMesh* mesh) {
     qsort(centroids_by_y, mesh->triangle_count, sizeof(Centroid), &compare_by_y);
     qsort(centroids_by_z, mesh->triangle_count, sizeof(Centroid), &compare_by_z);
 
+    Triangle* new_triangles = malloc(sizeof(Triangle) * mesh->triangle_count);
+
     mesh->bvh_root = malloc(sizeof(BVHNode));
     build_bvh_node(mesh->bvh_root, mesh, indices,
     		   centroids_by_x, centroids_by_y, centroids_by_z,
-    		   0);
+    		   0, &new_triangles);
+
+    free(mesh->triangles);
+    mesh->triangles = new_triangles;
 
     free(centroids_by_x);
     free(centroids_by_y);
