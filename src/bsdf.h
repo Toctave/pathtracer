@@ -6,8 +6,8 @@
 
 // BSDF : (void* params, Vec3 in, Vec3 out) -> Color
 typedef Color (*BSDFTransmission)(void*, Vec3, Vec3);
-// BSDFSampler : (Vec3 out, float* pdf) -> Vec3 out
-typedef Vec3 (*BSDFSampler)(Sampler*, Vec3, float*);
+// BSDFSampler : (void* params, Vec3 out, float* pdf) -> Vec3 out
+typedef Vec3 (*BSDFSampler)(void*, Sampler*, Vec3, float*);
 
 typedef Color (*BSDFEmission)(void*, Vec3);
 
@@ -23,9 +23,9 @@ typedef struct Material {
 } Material;
 
 // Samplers
-Vec3 uniform_bsdf_sampler(Sampler* sampler, Vec3 out, float* pdf);
-Vec3 cosine_weighted_bsdf_sampler(Sampler* sampler, Vec3 out, float* pdf);
-Vec3 perfect_reflection_sampler(Sampler* sampler, Vec3 out, float* pdf);
+Vec3 uniform_bsdf_sampler(void* params, Sampler* sampler, Vec3 out, float* pdf);
+Vec3 cosine_weighted_bsdf_sampler(void* params, Sampler* sampler, Vec3 out, float* pdf);
+Vec3 perfect_reflection_sampler(void* params, Sampler* sampler, Vec3 out, float* pdf);
 
 // Transmission functions
 Color lambert_bsdf(void* params, Vec3 in, Vec3 out);

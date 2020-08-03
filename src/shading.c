@@ -29,7 +29,7 @@ Color shade(Intersect it, Scene* sc) {
 	// INDIRECT LIGHTING
 	if (it.depth < MAX_DEPTH) {
 	    float pdf;
-	    Vec3 bounce_sample = it.material->bsdf->sampler(it.sampler, local_out, &pdf);
+	    Vec3 bounce_sample = it.material->bsdf->sampler(it.material->params, it.sampler, local_out, &pdf);
 	    Ray bounce = {
 		.o = surface_point,
 		.d = basis2world(bounce_sample, u, v, it.normal)
