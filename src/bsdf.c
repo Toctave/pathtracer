@@ -1,5 +1,5 @@
 #include "bsdf.h"
-#include "globals.h"
+#include "constants.h"
 #include <math.h>
 #include <stddef.h>
 

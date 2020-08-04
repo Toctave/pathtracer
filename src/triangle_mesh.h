@@ -6,14 +6,26 @@
 
 struct TriangleMesh;
 
+typedef struct LLNodeIdx {
+    unsigned int idx;
+    struct LLNodeIdx* next;
+} LLNodeIdx;
+
 typedef struct BVHNode {
     Vec3 vmin;
     Vec3 vmax;
-
-    Triangle* triangles;
-    int triangle_count;
-    struct BVHNode* left;
-    struct BVHNode* right;
+    
+    bool isLeaf;
+    union {
+        struct {
+            Triangle* array;
+            int count;
+        } triangles;
+        struct {
+            struct BVHNode* left;
+            struct BVHNode* right;
+        } children;
+    } data;
 } BVHNode;
 
 typedef struct TriangleMesh {

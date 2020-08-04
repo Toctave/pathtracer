@@ -1,7 +1,7 @@
 #include "image_buffer.h"
 #include <stdlib.h>
 #include <math.h>
-#include "globals.h"
+#include "constants.h"
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image_write.h"
 

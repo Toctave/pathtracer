@@ -123,112 +123,146 @@ int compare_by_z(const void* lhs, const void* rhs) {
     }
 }
 
-void build_bvh_node(BVHNode* node, TriangleMesh* mesh, bool* indices,
+typedef struct BVHBuildStackNode {
+    BVHNode* bvh_node;
+    bool* indices;
+    unsigned int depth;
+    struct BVHBuildStackNode* prev;
+} BVHBuildStackNode;
+
+void build_bvh_tree(BVHNode* bvh_root, TriangleMesh* mesh,
                     Centroid* centroids_by_x, Centroid* centroids_by_y, Centroid* centroids_by_z,
-                    unsigned int depth, Triangle** new_triangles) {
-    node->vmin.x = INFINITY;
-    node->vmin.y = INFINITY;
-    node->vmin.z = INFINITY;
-
-    node->vmax.x = -INFINITY;
-    node->vmax.y = -INFINITY;
-    node->vmax.z = -INFINITY;
-
-    Centroid* centroids_by_split_axis = NULL;
-    unsigned int split_axis = depth % 3;
-    switch (split_axis) {
-    case 0:
-        centroids_by_split_axis = centroids_by_x;
-        break;
-    case 1:
-        centroids_by_split_axis = centroids_by_y;
-        break;
-    case 2:
-        centroids_by_split_axis = centroids_by_z;
-        break;
-    }
-
-    int triangle_count = 0;
+                    unsigned int depth, Triangle* new_triangles) {
+    BVHBuildStackNode* stack_head = malloc(sizeof(BVHBuildStackNode));
+    stack_head->bvh_node = bvh_root;
+    stack_head->depth = 0;
+    stack_head->indices = malloc(sizeof(bool) * mesh->triangle_count);
 
     for (size_t i = 0; i < mesh->triangle_count; i++) {
-        int idx = centroids_by_split_axis[i].idx;
-        if (indices[idx]) {
-            for (int j = 0; j < 3; j++) {
-                if (mesh->triangles[idx].vertices[j].x < node->vmin.x) {
-                    node->vmin.x = mesh->triangles[idx].vertices[j].x;
-                }
-                if (mesh->triangles[idx].vertices[j].x > node->vmax.x) {
-                    node->vmax.x = mesh->triangles[idx].vertices[j].x;
-                }
-
-                if (mesh->triangles[idx].vertices[j].y < node->vmin.y) {
-                    node->vmin.y = mesh->triangles[idx].vertices[j].y;
-                }
-                if (mesh->triangles[idx].vertices[j].y > node->vmax.y) {
-                    node->vmax.y = mesh->triangles[idx].vertices[j].y;
-                }
-
-                if (mesh->triangles[idx].vertices[j].z < node->vmin.z) {
-                    node->vmin.z = mesh->triangles[idx].vertices[j].z;
-                }
-                if (mesh->triangles[idx].vertices[j].z > node->vmax.z) {
-                    node->vmax.z = mesh->triangles[idx].vertices[j].z;
-                }
-            }
-            triangle_count++;
-        }
+        stack_head->indices[i] = true;
     }
 
-    if (triangle_count > 10 && depth < 20) {
-        bool* l_indices = malloc(sizeof(bool) * mesh->triangle_count);
-        bool* r_indices = malloc(sizeof(bool) * mesh->triangle_count);
+    while (stack_head) {
+        // pop topmost node
+        BVHBuildStackNode* current = stack_head;
+        stack_head = stack_head->prev;
 
-        int triangles_seen = 0;
-        for (size_t i = 0; i < mesh->triangle_count; i++) {
-            size_t idx = centroids_by_split_axis[i].idx;
-            l_indices[idx] = false;
-            r_indices[idx] = false;
-            if (indices[idx]) {
-                if (triangles_seen < triangle_count / 2) {
-                    l_indices[idx] = true;
-                } else {
-                    r_indices[idx] = true;
-                }
-                triangles_seen++;
-            }
-        }
+        BVHNode* node = current->bvh_node;
+        bool* indices = current->indices;
 
-        node->left = malloc(sizeof(BVHNode));
-        build_bvh_node(node->left, mesh, l_indices,
-                       centroids_by_x, centroids_by_y, centroids_by_z,
-                       depth + 1, new_triangles);
-        node->right = malloc(sizeof(BVHNode));
-        build_bvh_node(node->right, mesh, r_indices,
-                       centroids_by_x, centroids_by_y, centroids_by_z,
-                       depth + 1, new_triangles);
-        free(r_indices);
-        free(l_indices);
-    } else {
-        node->left = NULL;
-        node->right = NULL;
+        // compute bounding box for current node
+        node->vmin.x = INFINITY;
+        node->vmin.y = INFINITY;
+        node->vmin.z = INFINITY;
 
-        node->triangles = *new_triangles;
-        node->triangle_count = 0;
+        node->vmax.x = -INFINITY;
+        node->vmax.y = -INFINITY;
+        node->vmax.z = -INFINITY;
+        
+        int triangle_count = 0;
+
         for (size_t i = 0; i < mesh->triangle_count; i++) {
             if (indices[i]) {
-                node->triangles[node->triangle_count++] = mesh->triangles[i];
+                for (int j = 0; j < 3; j++) {
+                    if (mesh->triangles[i].vertices[j].x < node->vmin.x) {
+                        node->vmin.x = mesh->triangles[i].vertices[j].x;
+                    }
+                    if (mesh->triangles[i].vertices[j].x > node->vmax.x) {
+                        node->vmax.x = mesh->triangles[i].vertices[j].x;
+                    }
+
+                    if (mesh->triangles[i].vertices[j].y < node->vmin.y) {
+                        node->vmin.y = mesh->triangles[i].vertices[j].y;
+                    }
+                    if (mesh->triangles[i].vertices[j].y > node->vmax.y) {
+                        node->vmax.y = mesh->triangles[i].vertices[j].y;
+                    }
+
+                    if (mesh->triangles[i].vertices[j].z < node->vmin.z) {
+                        node->vmin.z = mesh->triangles[i].vertices[j].z;
+                    }
+                    if (mesh->triangles[i].vertices[j].z > node->vmax.z) {
+                        node->vmax.z = mesh->triangles[i].vertices[j].z;
+                    }
+                }
+                triangle_count++;
             }
         }
-        *new_triangles += node->triangle_count;
-        /* printf("%zu triangles processed\r", triangles_processed); */
+        
+        node->isLeaf = (triangle_count <= 5 || depth >= 20);
+        if (node->isLeaf) {
+            // base case : store new triangles in the right place in the reordered triangle array
+            node->data.triangles.array = new_triangles;
+            node->data.triangles.count = 0;
+            for (size_t i = 0; i < mesh->triangle_count; i++) {
+                if (indices[i]) {
+                    node->data.triangles.array[node->data.triangles.count++] = mesh->triangles[i];
+                }
+            }
+            new_triangles += node->data.triangles.count;
+        } else {
+            Centroid* centroids_by_split_axis = NULL;
+            int split_axis = current->depth % 3;
+            switch (split_axis) {
+            case 0:
+                centroids_by_split_axis = centroids_by_x;
+                break;
+            case 1:
+                centroids_by_split_axis = centroids_by_y;
+                break;
+            case 2:
+                centroids_by_split_axis = centroids_by_z;
+                break;
+            }
+
+            bool* l_indices = malloc(sizeof(bool) * mesh->triangle_count);
+            bool* r_indices = malloc(sizeof(bool) * mesh->triangle_count);
+
+            int triangles_seen = 0;
+            for (size_t i = 0; i < mesh->triangle_count; i++) {
+                size_t idx = centroids_by_split_axis[i].idx;
+                l_indices[idx] = false;
+                r_indices[idx] = false;
+                if (indices[idx]) {
+                    if (triangles_seen < triangle_count / 2) {
+                        l_indices[idx] = true;
+                    } else {
+                        r_indices[idx] = true;
+                    }
+                    triangles_seen++;
+                }
+            }
+
+            node->data.children.left = malloc(sizeof(BVHNode));
+            node->data.children.right = malloc(sizeof(BVHNode));
+            
+            // push right child on stack
+            BVHBuildStackNode* new_stack_element = malloc(sizeof(BVHBuildStackNode));
+            new_stack_element->bvh_node = node->data.children.right;
+            new_stack_element->indices = r_indices;
+            new_stack_element->depth = current->depth + 1;
+            
+            new_stack_element->prev = stack_head;
+            stack_head = new_stack_element;
+
+            // push left child on stack
+            new_stack_element = malloc(sizeof(BVHBuildStackNode));
+            new_stack_element->bvh_node = node->data.children.left;
+            new_stack_element->indices = l_indices;
+            new_stack_element->depth = current->depth + 1;
+            
+            new_stack_element->prev = stack_head;
+            stack_head = new_stack_element;
+        }
+        // cleanup
+        free(current->indices);
+        free(current);
     }
 }
 
 void build_bvh(TriangleMesh* mesh) {
     Centroid* centroids = malloc(sizeof(Centroid) * mesh->triangle_count);
-    bool* indices = malloc(sizeof(bool) * mesh->triangle_count);
     for (size_t i = 0; i < mesh->triangle_count; i++) {
-        indices[i] = true;
         centroids[i].idx = i;
         centroids[i].p = vadd(
             vadd(
@@ -253,9 +287,9 @@ void build_bvh(TriangleMesh* mesh) {
     Triangle* new_triangles = malloc(sizeof(Triangle) * mesh->triangle_count);
 
     mesh->bvh_root = malloc(sizeof(BVHNode));
-    build_bvh_node(mesh->bvh_root, mesh, indices,
+    build_bvh_tree(mesh->bvh_root, mesh,
                    centroids_by_x, centroids_by_y, centroids_by_z,
-                   0, &new_triangles);
+                   0, new_triangles);
 
     free(mesh->triangles);
     mesh->triangles = new_triangles;
@@ -265,5 +299,4 @@ void build_bvh(TriangleMesh* mesh) {
     free(centroids_by_z);
     
     free(centroids);
-    free(indices);
 }

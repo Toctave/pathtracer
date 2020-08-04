@@ -102,7 +102,7 @@ void render_stuff(ImageBuffer* buffer,
     };
 
     TriangleMesh suzanne;
-    if (!read_obj_file(&suzanne, "res/suzanne_250k.obj"))
+    if (!read_obj_file(&suzanne, "res/suzanne_15k.obj"))
         return;
 
     Scene sc = {

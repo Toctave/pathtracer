@@ -1,5 +1,5 @@
 #include "sampling.h"
-#include "globals.h"
+#include "constants.h"
 #include <math.h>
 #include <stdlib.h>
 

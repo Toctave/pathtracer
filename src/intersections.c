@@ -221,19 +221,19 @@ bool intersect_bvh(BVHNode* node, Ray r, Intersect* intersect) {
         return false;
     }
     
-    if (!node->left) {
+    if (node->isLeaf) {
         bool did_intersect = false;
-        for (int i = 0; i < node->triangle_count; i++) {
-            if (intersect_triangle(node->triangles[i], r, intersect))
+        for (int i = 0; i < node->data.triangles.count; i++) {
+            if (intersect_triangle(node->data.triangles.array[i], r, intersect))
                 did_intersect = true;
         }
         return did_intersect;
     }
 
     bool did_intersect = false;
-    if (intersect_bvh(node->left, r, intersect))
+    if (intersect_bvh(node->data.children.left, r, intersect))
         did_intersect = true;
-    if (intersect_bvh(node->right, r, intersect))
+    if (intersect_bvh(node->data.children.right, r, intersect))
         did_intersect = true;
 
     return did_intersect;
@@ -243,17 +243,17 @@ bool intersects_bvh(BVHNode* node, Ray r) {
     if (!intersects_box(node->vmin, node->vmax, r))
         return false;
     
-    if (!node->left) {
-        for (int i = 0; i < node->triangle_count; i++) {
-            if (intersects_triangle(node->triangles[i], r))
+    if (node->isLeaf) {
+        for (int i = 0; i < node->data.triangles.count; i++) {
+            if (intersects_triangle(node->data.triangles.array[i], r))
                 return true;
         }
         return false;
     }
 
-    if (intersects_bvh(node->left, r))
+    if (intersects_bvh(node->data.children.left, r))
         return true;
-    if (intersects_bvh(node->right, r))
+    if (intersects_bvh(node->data.children.right, r))
         return true;
 
     return false;
