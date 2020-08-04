@@ -250,9 +250,10 @@ void render_stuff(ImageBuffer* buffer,
         char total_time[256];
         long int total_seconds = (now - t0) / 1000;
         format_time(total_seconds, total_time);
-        printf("%6ld samples | last %4ldms | total %s\r",
-               ++samples,
+        printf("%6ld samples | last %4ldms | average %4ldms | total %s\r",
+               samples,
                now - t,
+               (now - t0) / samples,
                total_time);
         fflush(stdout);
 
