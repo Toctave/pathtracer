@@ -13,11 +13,11 @@ typedef enum { GEO_PLANE, GEO_PARTIAL_PLANE, GEO_SPHERE, GEO_TRIANGLE, GEO_TRIAN
 typedef struct Object {
     GeometryKind kind;
     union {
-	Sphere sphere;
-	Plane plane;
-	PartialPlane partial_plane;
-	Triangle triangle;
-	TriangleMesh triangle_mesh;
+        Sphere sphere;
+        Plane plane;
+        PartialPlane partial_plane;
+        Triangle triangle;
+        TriangleMesh triangle_mesh;
     } geometry;
     Material* material;
 } Object;

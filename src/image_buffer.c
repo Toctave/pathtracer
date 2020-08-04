@@ -7,8 +7,8 @@
 
 ImageBuffer* create_buffer(int width, int height) {
     ImageBuffer* rval =
-	malloc(sizeof(ImageBuffer) +
-	       width * height * sizeof(PixelData));
+        malloc(sizeof(ImageBuffer) +
+               width * height * sizeof(PixelData));
     rval->data = (PixelData*) (rval + 1);
     rval->width = width;
     rval->height = height;
@@ -17,10 +17,10 @@ ImageBuffer* create_buffer(int width, int height) {
 
 void clear_buffer(ImageBuffer* buffer) {
     for (int i = 0; i < buffer-> width * buffer->height; i++) {
-	buffer->data[i].color.r = 0.0f;
-	buffer->data[i].color.g = 0.0f;
-	buffer->data[i].color.b = 0.0f;
-	buffer->data[i].weight_sum = 0.0f;
+        buffer->data[i].color.r = 0.0f;
+        buffer->data[i].color.g = 0.0f;
+        buffer->data[i].color.b = 0.0f;
+        buffer->data[i].weight_sum = 0.0f;
     }
 }
 
@@ -47,38 +47,39 @@ float falloff(float dx, float dy, float extent) {
 }
 
 void add_pixel_sample(ImageBuffer* buffer, int x, int y, float dx, float dy, Color c) {
-    static const int extent = 3.0f;
-    for (int ny = -extent; ny <= extent; ny++) {
-	for (int nx = -extent; nx <= extent; nx++) {
-	    if (x + nx >= 0 && x + nx < buffer->width &&
-		y + ny >= 0 && y + ny < buffer->height) {
-		float ddx = dx - .5f - nx;
-		float ddy = dy - .5f - ny;
-		float weight = falloff(ddx, ddy, (float) extent);
+    /* static const int extent = 3.0f; */
+    /* for (int ny = -extent; ny <= extent; ny++) { */
+	/* for (int nx = -extent; nx <= extent; nx++) { */
+    /* if (x + nx >= 0 && x + nx < buffer->width && */
+    /* y + ny >= 0 && y + ny < buffer->height) { */
+    /* float ddx = dx - .5f - nx; */
+    /* float ddy = dy - .5f - ny; */
+    /* float weight = falloff(ddx, ddy, (float) extent); */
 	    
-		int i = (y + ny) * buffer->width + (x + nx);
-		buffer->data[i].weight_sum += weight;
-		buffer->data[i].color = cadd(buffer->data[i].color,
-					     cscale(c, weight));
-	    }
-	}
-    }
+    /* int i = (y + ny) * buffer->width + (x + nx); */
+    int i = y * buffer->width + x;
+    buffer->data[i].weight_sum += 1.0f;
+    buffer->data[i].color = cadd(buffer->data[i].color, c);
+    /* cscale(c, weight)); */
+    /* } */
+	/* } */
+    /* } */
 }
 
 void rgb_pixel_value(ImageBuffer* buffer, int i,
-		     unsigned char* r,
-		     unsigned char* g,
-		     unsigned char* b,
-		     float inv_gamma) {
+                     unsigned char* r,
+                     unsigned char* g,
+                     unsigned char* b,
+                     float inv_gamma) {
     Color c = cscale(buffer->data[i].color,
-		     1.0f / buffer->data[i].weight_sum);
+                     1.0f / buffer->data[i].weight_sum);
     clamp(&c);
     *r = 
-	(unsigned char) (powf(c.r, inv_gamma) * 255.0f);
+        (unsigned char) (powf(c.r, inv_gamma) * 255.0f);
     *g =
-	(unsigned char) (powf(c.g, inv_gamma) * 255.0f);
+        (unsigned char) (powf(c.g, inv_gamma) * 255.0f);
     *b = 
-	(unsigned char) (powf(c.b, inv_gamma) * 255.0f);
+        (unsigned char) (powf(c.b, inv_gamma) * 255.0f);
 
 }
 
@@ -86,31 +87,31 @@ void dump_pixel_data(ImageBuffer* buffer, unsigned char* pixels, float gamma) {
     const int channels = 3;
     float inv_gamma = 1.0f / gamma;
     for (int i = 0; i < buffer->width * buffer->height; i++) {
-	if (buffer->data[i].weight_sum == 0.0f) {
-	    continue;
-	}
-	rgb_pixel_value(buffer, i,
-			&pixels[channels * i],
-			&pixels[channels * i + 1],
-			&pixels[channels * i + 2],
-			inv_gamma);
+        if (buffer->data[i].weight_sum == 0.0f) {
+            continue;
+        }
+        rgb_pixel_value(buffer, i,
+                        &pixels[channels * i],
+                        &pixels[channels * i + 1],
+                        &pixels[channels * i + 2],
+                        inv_gamma);
     }
 }
 
 bool write_image_file(ImageBuffer* buffer, char* filepath, float gamma) {
     const int channels = 3;
     unsigned char* pixels = malloc(buffer->width *
-				   buffer->height *
-				   channels);
+                                   buffer->height *
+                                   channels);
     dump_pixel_data(buffer, pixels, gamma);
     bool success = !stbi_write_png(
-	filepath,
-	buffer->width,
-	buffer->height,
-	channels,
-	pixels,
-	buffer->width * channels
-	);
+        filepath,
+        buffer->width,
+        buffer->height,
+        channels,
+        pixels,
+        buffer->width * channels
+        );
     free(pixels);
     return success;
 }

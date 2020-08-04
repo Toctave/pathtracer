@@ -13,19 +13,19 @@ float norm(Vec3 v) {
 
 Vec3 world2basis(Vec3 v, Vec3 x, Vec3 y, Vec3 z) {
     return (Vec3) {
-	dot(v, x),
-	dot(v, y),
-	dot(v, z)
-    };
+        dot(v, x),
+            dot(v, y),
+            dot(v, z)
+            };
 }
 
 Vec3 basis2world(Vec3 v, Vec3 x, Vec3 y, Vec3 z) {
     return vadd(
-	vadd(
-	    vmul(x, v.x),
-	    vmul(y, v.y)),
-	vmul(z, v.z)
-	);
+        vadd(
+            vmul(x, v.x),
+            vmul(y, v.y)),
+        vmul(z, v.z)
+        );
 }
 
 void vprint(Vec3 v) {
@@ -42,9 +42,9 @@ Color vec3_to_color(Vec3 v) {
 
 PartialPlane create_partial_plane(Vec3 origin, Vec3 u, Vec3 v, float umin, float vmin, float umax, float vmax) {
     return (PartialPlane) {
-	.basis = {u, v, normalized(cross(u, v))},
-	.origin = origin,
-	.min = {umin, vmin},
-	.max = {umax, vmax}
+        .basis = {u, v, normalized(cross(u, v))},
+            .origin = origin,
+            .min = {umin, vmin},
+            .max = {umax, vmax}
     };
 }

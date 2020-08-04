@@ -5,33 +5,33 @@
 
 void create_samplers(Sampler* samplers, size_t n) {
     for (size_t i = 0; i < n; i++) {
-	for (size_t j = 0; j < MAX_DEPTH; j++) {
-	    pcg32_srandom_r(&samplers[i].pcg_state[j], i * 4861342 + j * 1243, i * MAX_DEPTH + j);
-	    samplers[i].stratified_cell_indices[j] = 0;
-	    // initialize cell offsets
-	    for (size_t y = 0; y < STRATIFIED_RESOLUTION; y++) {
-		for (size_t x = 0; x < STRATIFIED_RESOLUTION; x++) {
-		    samplers[i].stratified_offsets[j][y * STRATIFIED_RESOLUTION + x][0] =
-			(float) x / STRATIFIED_RESOLUTION;
-		    samplers[i].stratified_offsets[j][y * STRATIFIED_RESOLUTION + x][1] =
-			(float) y / STRATIFIED_RESOLUTION;
-		}
-	    }
-	    // shuffle them
-	    samplers[i].current_depth = j;
-	    for (size_t k = 0; k < STRATIFIED_RESOLUTION * STRATIFIED_RESOLUTION; k++) {
-		size_t other = sample_int(&samplers[i]) % (STRATIFIED_RESOLUTION * STRATIFIED_RESOLUTION);
-		float tmpx = samplers[i].stratified_offsets[j][k][0];
-		float tmpy = samplers[i].stratified_offsets[j][k][1];
-		samplers[i].stratified_offsets[j][k][0] =
-		    samplers[i].stratified_offsets[j][other][0];
-		samplers[i].stratified_offsets[j][k][1] =
-		    samplers[i].stratified_offsets[j][other][1];
-		samplers[i].stratified_offsets[j][other][0] = tmpx;
-		samplers[i].stratified_offsets[j][other][1] = tmpy;
-	    }
-	}
-	samplers[i].current_depth = 0;
+        for (size_t j = 0; j < MAX_DEPTH; j++) {
+            pcg32_srandom_r(&samplers[i].pcg_state[j], i * 4861342 + j * 1243, i * MAX_DEPTH + j);
+            samplers[i].stratified_cell_indices[j] = 0;
+            // initialize cell offsets
+            for (size_t y = 0; y < STRATIFIED_RESOLUTION; y++) {
+                for (size_t x = 0; x < STRATIFIED_RESOLUTION; x++) {
+                    samplers[i].stratified_offsets[j][y * STRATIFIED_RESOLUTION + x][0] =
+                        (float) x / STRATIFIED_RESOLUTION;
+                    samplers[i].stratified_offsets[j][y * STRATIFIED_RESOLUTION + x][1] =
+                        (float) y / STRATIFIED_RESOLUTION;
+                }
+            }
+            // shuffle them
+            samplers[i].current_depth = j;
+            for (size_t k = 0; k < STRATIFIED_RESOLUTION * STRATIFIED_RESOLUTION; k++) {
+                size_t other = sample_int(&samplers[i]) % (STRATIFIED_RESOLUTION * STRATIFIED_RESOLUTION);
+                float tmpx = samplers[i].stratified_offsets[j][k][0];
+                float tmpy = samplers[i].stratified_offsets[j][k][1];
+                samplers[i].stratified_offsets[j][k][0] =
+                    samplers[i].stratified_offsets[j][other][0];
+                samplers[i].stratified_offsets[j][k][1] =
+                    samplers[i].stratified_offsets[j][other][1];
+                samplers[i].stratified_offsets[j][other][0] = tmpx;
+                samplers[i].stratified_offsets[j][other][1] = tmpy;
+            }
+        }
+        samplers[i].current_depth = 0;
     }
 }
 
@@ -55,10 +55,10 @@ void sample_unit_square(Sampler* sampler, float* x, float* y, float* pdf) {
     *y = sampler->stratified_offsets[sampler->current_depth][cell_index][1] + dy;
 
     sampler->stratified_cell_indices[sampler->current_depth] =
-	(cell_index + 1) % (STRATIFIED_RESOLUTION * STRATIFIED_RESOLUTION);
+        (cell_index + 1) % (STRATIFIED_RESOLUTION * STRATIFIED_RESOLUTION);
     
     if (pdf)
-	*pdf = 1.0f;
+        *pdf = 1.0f;
 }
 
 void sample_unit_disc(Sampler* sampler, float* x, float* y, float* pdf) {
@@ -70,7 +70,7 @@ void sample_unit_disc(Sampler* sampler, float* x, float* y, float* pdf) {
     *x = r * cosf(theta);
     *y = r * sinf(theta);
     if (pdf)
-	*pdf = 1.0f / PI;
+        *pdf = 1.0f / PI;
 }
 
 Vec3 sample_uniform_hemisphere(Sampler* sampler, float* pdf) {
@@ -81,12 +81,12 @@ Vec3 sample_uniform_hemisphere(Sampler* sampler, float* pdf) {
     float sinPhi = sinf(2 * PI * v);
 
     if (pdf)
-	*pdf = .5f / PI;
+        *pdf = .5f / PI;
     return (Vec3) {
-	sinTheta * cosPhi,
-	sinTheta * sinPhi,
-	cosTheta
-    };
+        sinTheta * cosPhi,
+            sinTheta * sinPhi,
+            cosTheta
+            };
 }
 
 Vec3 sample_cosine_weighted_hemisphere(Sampler* sampler, float* pdf) {
@@ -96,7 +96,7 @@ Vec3 sample_cosine_weighted_hemisphere(Sampler* sampler, float* pdf) {
     float z2 = 1.0f - sample.x * sample.x - sample.y * sample.y;
     sample.z = sqrtf(z2 > 0.0f ? z2 : 0.0f);
     if (pdf)
-	*pdf = sample.z / PI; // p(theta, phi) = cos(theta) / pi
+        *pdf = sample.z / PI; // p(theta, phi) = cos(theta) / pi
     return sample;
 }
 

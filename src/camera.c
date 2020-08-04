@@ -9,8 +9,8 @@ OrthographicCamera create_ortho_camera(Vec3 pos, Vec3 target, float ratio, float
     rval.eye = pos;
     rval.basis[2] = normalized(vsub(pos, target));
     rval.basis[0] = normalized(
-	cross((Vec3) {0.00123f, -0.000987f, 1.0f}, rval.basis[2])
-	);
+        cross((Vec3) {0.00123f, -0.000987f, 1.0f}, rval.basis[2])
+        );
     rval.basis[1] = cross(rval.basis[2], rval.basis[0]);
 
     rval.xscale = ratio * scale;
@@ -23,12 +23,12 @@ Ray ortho_camera_ray(OrthographicCamera cam, float sx, float sy) {
     Ray r = {};
 
     r.o = vadd(
-	cam.eye,
-	vadd(
-	    vmul(cam.basis[0], cam.xscale * (-1.0f + 2.0f * sx)),
-	    vmul(cam.basis[1], cam.yscale * (-1.0f + 2.0f * sy))
-	    )
-	);
+        cam.eye,
+        vadd(
+            vmul(cam.basis[0], cam.xscale * (-1.0f + 2.0f * sx)),
+            vmul(cam.basis[1], cam.yscale * (-1.0f + 2.0f * sy))
+            )
+        );
     r.d = vneg(cam.basis[2]);
 
     return r;
@@ -41,8 +41,8 @@ PerspectiveCamera create_perspective_camera(Vec3 pos, Vec3 target, float ratio, 
 
     cam.basis[2] = normalized(vsub(pos, target));
     cam.basis[0] = normalized(
-	cross((Vec3) {0.00123f, -0.000987f, 1.0f}, cam.basis[2])
-	);
+        cross((Vec3) {0.00123f, -0.000987f, 1.0f}, cam.basis[2])
+        );
     cam.basis[1] = cross(cam.basis[2], cam.basis[0]);
 
     cam.xscale = atanf(fov * PI / 360.0f);
@@ -53,17 +53,17 @@ PerspectiveCamera create_perspective_camera(Vec3 pos, Vec3 target, float ratio, 
 
 Ray perspective_camera_ray(PerspectiveCamera cam, float sx, float sy) {
     Vec3 basis_ray = normalized(
-	(Vec3){ cam.xscale * (-1.0f + 2.0f * sx),
-		cam.yscale * (-1.0f + 2.0f * sy),
-		-cam.depth
-		}
-	);
+        (Vec3){ cam.xscale * (-1.0f + 2.0f * sx),
+                cam.yscale * (-1.0f + 2.0f * sy),
+                -cam.depth
+                }
+        );
     Ray r = {
-	.o = cam.eye,
-	.d = basis2world(
-	    basis_ray,
-	    cam.basis[0], cam.basis[1], cam.basis[2]
-	    )
+        .o = cam.eye,
+        .d = basis2world(
+            basis_ray,
+            cam.basis[0], cam.basis[1], cam.basis[2]
+            )
     };
     return r;
 };
@@ -72,16 +72,16 @@ Ray perspective_camera_ray(PerspectiveCamera cam, float sx, float sy) {
 Ray camera_ray(Camera cam, float x, float y) {
     switch (cam.kind) {
     case PERSPECTIVE:
-	return perspective_camera_ray(
-	    cam.camera.perspective, x, y
-	    );
+        return perspective_camera_ray(
+            cam.camera.perspective, x, y
+            );
     case ORTHOGRAPHIC:
-	return ortho_camera_ray(
-	    cam.camera.orthographic, x, y
-	    );
+        return ortho_camera_ray(
+            cam.camera.orthographic, x, y
+            );
     default:
-	fprintf(stderr, "Unknown camera type\n");
-	return (Ray) {};
+        fprintf(stderr, "Unknown camera type\n");
+        return (Ray) {};
     }
 }
 

@@ -25,29 +25,29 @@ void add_pixel_sample(ImageBuffer* buffer, int x, int y, float dx, float dy, Col
 bool write_image_file(ImageBuffer* buffer, char* filepath, float gamma);
 void dump_pixel_data(ImageBuffer* buffer, unsigned char* pixels, float gamma);
 void rgb_pixel_value(ImageBuffer* buffer, int i,
-		     unsigned char* r,
-		     unsigned char* g,
-		     unsigned char* b,
-		     float inv_gamma);
+                     unsigned char* r,
+                     unsigned char* g,
+                     unsigned char* b,
+                     float inv_gamma);
 
 Color mix(Color a, Color b, float t);
 Color gray(float d);
 
 static inline Color cadd(Color a, Color b) {
     Color rval = {
-	a.r + b.r,
-	a.g + b.g,
-	a.b + b.b
+        a.r + b.r,
+        a.g + b.g,
+        a.b + b.b
     };
     return rval;
 }
 
 static inline Color cmul(Color a, Color b) {
     return (Color) {
-	a.r * b.r,
-	a.g * b.g,
-	a.b * b.b
-    };
+        a.r * b.r,
+            a.g * b.g,
+            a.b * b.b
+            };
 }
 
 static inline Color cscale(Color a, float f) {

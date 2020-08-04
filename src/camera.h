@@ -21,8 +21,8 @@ typedef struct PerspectiveCamera {
 typedef struct Camera {
     CameraKind kind;
     union {
-	PerspectiveCamera perspective;
-	OrthographicCamera orthographic;
+        PerspectiveCamera perspective;
+        OrthographicCamera orthographic;
     } camera;
 } Camera;
 

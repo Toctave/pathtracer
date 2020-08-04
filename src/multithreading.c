@@ -8,29 +8,29 @@ void sample_scene_master(Scene* scene, Camera camera, ImageBuffer* buffer, Sampl
     int band_height = buffer->height / num_threads + 1;
     pthread_mutex_t buffer_mutex = PTHREAD_MUTEX_INITIALIZER;
     for (int i = 0 ; i < num_threads; i++) {
-	int ymax_candidate = (i + 1) * band_height;
-	infos[i] = (SceneSampleInfo) {
-	    .xmin = 0,
-	    .xmax = buffer->width,
-	    .ymin = i * band_height,
-	    .ymax = ymax_candidate < buffer->height ? ymax_candidate : buffer->height,
+        int ymax_candidate = (i + 1) * band_height;
+        infos[i] = (SceneSampleInfo) {
+            .xmin = 0,
+            .xmax = buffer->width,
+            .ymin = i * band_height,
+            .ymax = ymax_candidate < buffer->height ? ymax_candidate : buffer->height,
 
-	    .buffer = buffer,
-	    .buffer_mutex = buffer_mutex,
+            .buffer = buffer,
+            .buffer_mutex = buffer_mutex,
 
-	    .scene = scene,
-	    .camera = camera,
-	    .samplers = samplers
-	};
-	pthread_create(&threads[i],
-		       NULL,
-		       sample_scene_slave,
-		       (void *) &infos[i]);
-	//sample_scene_slave((void*) &infos[i]);
+            .scene = scene,
+            .camera = camera,
+            .samplers = samplers
+        };
+        pthread_create(&threads[i],
+                       NULL,
+                       sample_scene_slave,
+                       (void *) &infos[i]);
+        //sample_scene_slave((void*) &infos[i]);
     }
     
     for (int i = 0 ; i < num_threads; i++) {
-	pthread_join(threads[i], NULL);
+        pthread_join(threads[i], NULL);
     }
     
 }
@@ -39,20 +39,20 @@ void* sample_scene_slave(void* data) {
     SceneSampleInfo* ss = (SceneSampleInfo*) data;
 
     for (int y = ss->ymin; y < ss->ymax; y++) {
-	for (int x = ss->xmin; x < ss->xmax; x++) {
-	    Sampler* sampler = &ss->samplers[y * ss->buffer->width + x];
-	    sampler->current_depth = 0;
-	    float dx, dy;
-	    sample_unit_square(sampler, &dx, &dy, NULL);
-	    float sx = (x + dx) / ss->buffer->width;
-	    float sy = 1.0f - (y + dy) / ss->buffer->height;
-	    Ray r = camera_ray(ss->camera, sx, sy);
+        for (int x = ss->xmin; x < ss->xmax; x++) {
+            Sampler* sampler = &ss->samplers[y * ss->buffer->width + x];
+            sampler->current_depth = 0;
+            float dx, dy;
+            sample_unit_square(sampler, &dx, &dy, NULL);
+            float sx = (x + dx) / ss->buffer->width;
+            float sy = 1.0f - (y + dy) / ss->buffer->height;
+            Ray r = camera_ray(ss->camera, sx, sy);
 
-	    pthread_mutex_lock(&ss->buffer_mutex);
-	    add_pixel_sample(ss->buffer, x, y, dx, dy,
-			     trace_ray(ss->scene, r, 0, sampler));
-	    pthread_mutex_unlock(&ss->buffer_mutex);
-	}
+            pthread_mutex_lock(&ss->buffer_mutex);
+            add_pixel_sample(ss->buffer, x, y, dx, dy,
+                             trace_ray(ss->scene, r, 0, sampler));
+            pthread_mutex_unlock(&ss->buffer_mutex);
+        }
     }
 
     return NULL;
