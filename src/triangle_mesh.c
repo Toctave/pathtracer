@@ -134,9 +134,11 @@ void build_bvh_tree(BVHNode* bvh_root, TriangleMesh* mesh,
                     Centroid* centroids_by_x, Centroid* centroids_by_y, Centroid* centroids_by_z,
                     unsigned int depth, Triangle* new_triangles) {
     BVHBuildStackNode* stack_head = malloc(sizeof(BVHBuildStackNode));
+
     stack_head->bvh_node = bvh_root;
     stack_head->depth = 0;
     stack_head->indices = malloc(sizeof(bool) * mesh->triangle_count);
+    stack_head->prev = NULL;
 
     for (size_t i = 0; i < mesh->triangle_count; i++) {
         stack_head->indices[i] = true;
