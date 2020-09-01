@@ -30,3 +30,7 @@ The only dependencies are SDL2, for simple cross-platform window management, and
 ## Usage
 
     bin/pathtracer [-w <image width>] [-h <image height>] [-s <max samples>] [-t <max render time (s)>] [-o <output file>]
+
+## Gallery
+
+![Stanford dragon in the Cornell box](dragon_2048.png)
