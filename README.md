@@ -8,7 +8,7 @@ This is a basic pathtracer I wrote in C99 as an exercise. It aims at keeping thi
 - Basic Materials : pure lambertian, pure reflection
 - Global illumination
 - Cosine-weighted and uniform sampling
-- Multi-threaded rendering
+- Multi-threaded rendering with POSIX threads
 
 ### To do :
 - ~Faster BVH build times & smarter heuristics~
