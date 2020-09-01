@@ -11,13 +11,13 @@ This is a basic pathtracer I wrote in pure C as an exercise.
 - Multi-threading
 
 ### To do :
+- ~Faster BVH build times & smarter heuristics~
 - Complex BSDFs
-- Faster BVH build times & smarter heuristics
 - Scene-wide BVHs
 
 ## Building
 
-The only dependency is SDL2, for simple cross-platform window management, and stb_image (included in the source) for writing image files.
+The only dependencies are SDL2, for simple cross-platform window management, and stb_image (included in the source) for writing image files.
 
     git clone https://github.com/Toctave/pathtracer.git
     cd pathtracer
